@@ -1,0 +1,30 @@
+{
+  "name": "@duckarchive/wiki-manager",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "page:edit": "pnpm build && dotenv -e .env -- node dist/editPage.js",
+    "page:delete": "pnpm build && dotenv -e .env -- node dist/deletePage.js",
+    "file:upload": "pnpm build && dotenv -e .env -- node dist/uploadFile.js",
+    "file:publish": "pnpm build && dotenv -e .env -- node dist/publishFile.js",
+    "build": "rm -rf dist && tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.8.0",
+  "devDependencies": {
+    "@types/node": "^24.0.1",
+    "dotenv": "^16.5.0",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "form-data": "^4.0.3",
+    "mwn": "^3.0.1"
+  }
+}
