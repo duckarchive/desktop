@@ -1,4 +1,4 @@
-export const ARCHIVES: Record<string, string> = {
+const ARCHIVES: Record<string, string> = {
   ЦДКФФА:
     "Центральний державний кінофотофоноархів України ім. Г. С. Пшеничного",
   ЦДНТА: "Центральний державний науково-технічний архів України",
@@ -41,4 +41,49 @@ export const ARCHIVES: Record<string, string> = {
   ДАКрО: "Державний архів Кіровоградської області",
   ЦДАВО:
     "Центральний державний архів вищих органів влади та управління України",
+};
+
+
+export interface ParsedFileName {
+  fileName: string;
+  archiveFull: string;
+  archive: string;
+  fund: string;
+  description: string;
+  case: string;
+  dateRange: string;
+  title: string;
+}
+
+export const parseFileName = (fileName: string): ParsedFileName | undefined => {
+  const match = fileName.match(
+    /^([А-ЯҐЄІЇа-яґєії]+)\s([\dА-ЯҐЄІЇа-яґєії]+)-([\dА-ЯҐЄІЇа-яґєії]+)-([\dА-ЯҐЄІЇа-яґєії]+)\.\s(\d{4}(?:-\d{4})?)\.\s(.+)$/i
+  );
+  if (!match) {
+    return undefined;
+  }
+  const [_, a, f, d, c, dateRange, title] = match;
+
+  if (
+    !a ||
+    !f ||
+    !d ||
+    !c ||
+    !dateRange ||
+    !title ||
+    ARCHIVES[a] === undefined
+  ) {
+    return undefined;
+  }
+
+  return {
+    fileName,
+    archiveFull: ARCHIVES[a],
+    archive: a,
+    fund: f.replace(/^([А-Я])/, "$1-"), // replace first letter with uppercase and add hyphen
+    description: d,
+    case: c,
+    dateRange: dateRange,
+    title: title.trim(),
+  };
 };

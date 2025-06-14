@@ -1,4 +1,4 @@
-import { parseFileName } from "./uploadFile";
+import { parseFileName } from "./parse";
 
 export const getFundPage = ({
   title,

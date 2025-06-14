@@ -3,52 +3,10 @@ import path from "path";
 import FormData from "form-data";
 import { Mwn } from "mwn";
 import { commonsOptions } from ".";
-import { ARCHIVES } from "./archives";
 import { getWikiTextForFile } from "./templates";
+import { parseFileName } from "./parse";
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
-
-interface ParsedFileName {
-  archiveFull: string;
-  archive: string;
-  fund: string;
-  description: string;
-  case: string;
-  dateRange: string;
-  title: string;
-}
-
-export const parseFileName = (fileName: string): ParsedFileName | undefined => {
-  const match = fileName.match(
-    /^([А-ЯҐЄІЇа-яґєії]+)\s([\dА-ЯҐЄІЇа-яґєії]+)-([\dА-ЯҐЄІЇа-яґєії]+)-([\dА-ЯҐЄІЇа-яґєії]+)\.\s(\d{4}(?:-\d{4})?)\.\s(.+)$/i
-  );
-  if (!match) {
-    return undefined;
-  }
-  const [_, a, f, d, c, dateRange, title] = match;
-
-  if (
-    !a ||
-    !f ||
-    !d ||
-    !c ||
-    !dateRange ||
-    !title ||
-    ARCHIVES[a] === undefined
-  ) {
-    return undefined;
-  }
-
-  return {
-    archiveFull: ARCHIVES[a],
-    archive: a,
-    fund: f,
-    description: d,
-    case: c,
-    dateRange: dateRange,
-    title: title.trim(),
-  };
-};
 
 export async function uploadFile(filePath: string) {
   const bot = await Mwn.init(commonsOptions);

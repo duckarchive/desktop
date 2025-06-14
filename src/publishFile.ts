@@ -1,9 +1,14 @@
 import fs from "fs";
 import path from "path";
-import { parseFileName } from "./uploadFile";
 import { Mwn } from "mwn";
 import { sourcesOptions } from ".";
-import { getCasePageContent, getDescriptionPage, getFundPage } from "./templates";
+import {
+  createCasePage,
+  createDescriptionPage,
+  createFundPage,
+} from "./createPage";
+import { parseFileName } from "./parse";
+import { upsertFundToArchivePage } from "./updatePage";
 
 const PREFIX = "Архів:";
 
@@ -27,42 +32,16 @@ const main = async (filePath: string) => {
 
   const bot = await Mwn.init(sourcesOptions);
 
-  // check if the fund page exists
-  const fundPage = await bot.read(`${PREFIX}${archive}/${fund}`);
-  if (fundPage.missing) {
-    // create the fund page
-    await bot.create(`${PREFIX}${archive}/${fund}`, getFundPage({}), `Створення сторінки фонду ${fund}`);
-  }
+  // create missing pages, if they do not exist
+  const archivePage = `${PREFIX}${archive}`;
+  const fundPage = `${archivePage}/${fund}`;
+  await createFundPage(bot, fundPage, parsed);
+  const descriptionPage = `${fundPage}/${description}`;
+  await createDescriptionPage(bot, descriptionPage, parsed);
+  const casePage = `${descriptionPage}/${caseNumber}`;
+  await createCasePage(bot, casePage, parsed);
 
-  // check if the description page exists
-  const descriptionPage = await bot.read(
-    `${PREFIX}${archive}/${fund}/${description}`
-  );
-  if (descriptionPage.missing) {
-    // create the description page
-    await bot.create(
-      `${PREFIX}${archive}/${fund}/${description}`,
-      getDescriptionPage({}),
-      `Створення сторінки опису ${description}`
-    );
-  }
-
-  // check if the case page exists
-  const casePage = await bot.read(
-    `${PREFIX}${archive}/${fund}/${description}/${caseNumber}`
-  );
-  if (casePage.missing) {
-    // create the case page
-    await bot.create(
-      `${PREFIX}${archive}/${fund}/${description}/${caseNumber}`,
-      getCasePageContent({
-        title: title || caseNumber,
-        dateRange: dateRange || "",
-        fileName: path.basename(filePath),
-      }),
-      `Створення сторінки справи ${caseNumber}`
-    );
-  }
+  await upsertFundToArchivePage(bot, archivePage, parsed);
 };
 
 const FILE_PATH = process.argv[2];
