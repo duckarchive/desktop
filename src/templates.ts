@@ -87,3 +87,19 @@ export const fileNameToWikiText = (fileName: string, isThumbnail?: boolean) => {
 
   return `[[c:File:${fileName}]]`;
 };
+
+export const generateWikiTable = (rows: {
+    [column: string]: string;
+}[]) => {
+  if (rows.length === 0) {
+    return "";
+  }
+  const columns = Object.keys(rows[0]);
+  const header = `! ${columns.join(" !! ")}`;
+  const body = rows
+    .map((row) => {
+      return `|-\n| ${columns.map((col) => row[col] || "").join(" || ")}`;
+    })
+    .join("\n");
+  return `{| class="wikitable sortable"\n${header}\n${body}\n|}`;
+};

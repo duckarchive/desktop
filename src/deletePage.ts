@@ -13,9 +13,7 @@ const softDeletePage = async (page: string) => {
 };
 
 const main = async () => {
-  for (let i = 2; i <= 15; i++) {
-    await softDeletePage(`Архів:ДАДнО/Р-6508/10д2/${i}`);
-  }
+  await softDeletePage(`Архів:ДАДнО/Р-6508/4/501`);
 };
 main();
 
