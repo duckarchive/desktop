@@ -8,7 +8,7 @@ import { ParsedFileName } from "./parse";
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
 
-export const uploadFile = async (filePath: string) => {
+export const uploadFile = async (filePath: string, parsed: ParsedFileName) => {
   const bot = await Mwn.init(commonsOptions);
   const csrfToken = await bot.getCsrfToken();
 
@@ -47,6 +47,7 @@ export const uploadFile = async (filePath: string) => {
       method: "POST",
       headers,
       data: form,
+      timeout: 1000 * 60 * 3,
     });
     const data = res.data;
 
@@ -60,7 +61,7 @@ export const uploadFile = async (filePath: string) => {
     filekey = data.upload.filekey;
     offset += chunk.length;
     Mwn.log(
-      `Chunk uploaded: offset=${offset}, filekey=${filekey}, progress=${(
+      `[I] Chunk uploaded: offset=${offset}, filekey=${filekey}, progress=${(
         (offset / fileSize) *
         100
       ).toFixed(2)}%`
@@ -88,15 +89,16 @@ export const uploadFile = async (filePath: string) => {
     headers: finalHeaders,
     method: "POST",
     data: finalizeForm,
+    timeout: 1000 * 60 * 3,
   });
 
   if (finalRes.data?.upload?.result !== "Success") {
     throw new Error("Final upload failed: " + JSON.stringify(finalRes.data));
   }
 
-  Mwn.log(`File uploaded successfully: ${finalRes.data?.upload}`);
+  Mwn.log(`[S] File uploaded successfully: ${finalRes.data?.upload}`);
 
-  const descriptionWikiText = getWikiTextForFile(fileName);
+  const descriptionWikiText = getWikiTextForFile(parsed);
 
   await bot.edit(`File:${fileName}`, () => ({
     text: descriptionWikiText.trim(),

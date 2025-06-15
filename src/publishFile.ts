@@ -1,4 +1,3 @@
-import fs from "fs";
 import path from "path";
 import { Mwn } from "mwn";
 import { sourcesOptions } from ".";
@@ -44,12 +43,12 @@ const main = async (filePath: string) => {
   await upsertDescriptionToFundPage(bot, fundPage, parsed);
   await upsertCaseToDescriptionPage(bot, descriptionPage, parsed);
 
-  await uploadFile(filePath);
+  await uploadFile(filePath, parsed);
 };
 
 const FILE_PATH = process.argv[2];
 if (!FILE_PATH) {
-  console.error("Usage: node publishFile.js <file_path>");
+  Mwn.log("[E] Usage: node publishFile.js <file_path>");
   process.exit(1);
 }
 

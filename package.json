@@ -6,7 +6,6 @@
   "scripts": {
     "page:edit": "pnpm build && dotenv -e .env -- node dist/editPage.js",
     "page:delete": "pnpm build && dotenv -e .env -- node dist/deletePage.js",
-    "file:upload": "pnpm build && dotenv -e .env -- node dist/uploadFile.js",
     "file:publish": "pnpm build && dotenv -e .env -- node dist/publishFile.js",
     "build": "rm -rf dist && tsc",
     "start": "node dist/index.js"

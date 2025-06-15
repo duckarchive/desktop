@@ -1,4 +1,4 @@
-import { parseFileName } from "./parse";
+import { ParsedFileName } from "./parse";
 
 export const getFundPage = ({
   title,
@@ -59,20 +59,20 @@ export const getCasePageContent = ({
 ${fileNameToWikiText(fileName, true)}`;
 };
 
-export const getWikiTextForFile = (fileName: string) => {
-  const parsed = parseFileName(fileName);
-  if (!parsed) {
-    return `=={{int:license-header}}==
-{{PD-Ukraine}}{{PD-scan|PD-old-assumed-expired}}`;
-  }
-
-  return `
+export const getWikiTextForFile = ({
+  archive,
+  archiveFull,
+  fund,
+  description,
+  caseName,
+  dateRange,
+}: ParsedFileName) => `
 =={{int:filedesc}}==
 {{Information
-|description={{uk|1=${parsed.archive} ${parsed.fund}-${parsed.description} ${parsed.caseName}}}
-|date=${parsed.dateRange}
-|source=${parsed.archiveFull}
-|author=${parsed.archiveFull}
+|description={{uk|1=${archive} ${fund}-${description} ${caseName}}}
+|date=${dateRange}
+|source=${archiveFull}
+|author=${archiveFull}
 |permission=
 |other versions=
 }}
@@ -80,7 +80,6 @@ export const getWikiTextForFile = (fileName: string) => {
 =={{int:license-header}}==
 {{PD-Ukraine}}{{PD-scan|PD-old-assumed-expired}}
 `;
-};
 
 export const fileNameToWikiText = (fileName: string, isThumbnail?: boolean) => {
   if (isThumbnail) {
@@ -90,9 +89,11 @@ export const fileNameToWikiText = (fileName: string, isThumbnail?: boolean) => {
   return `[[c:File:${fileName}]]`;
 };
 
-export const generateWikiTable = (rows: {
+export const generateWikiTable = (
+  rows: {
     [column: string]: string;
-}[]) => {
+  }[]
+) => {
   if (rows.length === 0) {
     return "";
   }
