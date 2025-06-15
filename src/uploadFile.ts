@@ -4,29 +4,21 @@ import FormData from "form-data";
 import { Mwn } from "mwn";
 import { commonsOptions } from ".";
 import { getWikiTextForFile } from "./templates";
-import { parseFileName } from "./parse";
+import { ParsedFileName } from "./parse";
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
 
-export async function uploadFile(filePath: string) {
+export const uploadFile = async (filePath: string) => {
   const bot = await Mwn.init(commonsOptions);
   const csrfToken = await bot.getCsrfToken();
 
   const fileName = path.basename(filePath);
-  const fileSize = fs.statSync(FILE_PATH).size;
-
-  const parsed = parseFileName(fileName);
-
-  if (!parsed) {
-    throw new Error(
-      `File name "${fileName}" does not match the expected format.`
-    );
-  }
+  const fileSize = fs.statSync(filePath).size;
 
   let offset = 0;
   let filekey: string | null = null;
 
-  const fileStream = fs.createReadStream(FILE_PATH, {
+  const fileStream = fs.createReadStream(filePath, {
     highWaterMark: CHUNK_SIZE,
   });
 
@@ -111,13 +103,3 @@ export async function uploadFile(filePath: string) {
     summary: "Add file description and license",
   }));
 }
-
-const FILE_PATH = process.argv[2];
-if (!FILE_PATH) {
-  console.error("Usage: node uploadFile.js <file_path>");
-  process.exit(1);
-}
-
-// uploadFile(FILE_PATH).catch((err) => {
-//   console.error("Error during upload:", err);
-// });

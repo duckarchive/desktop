@@ -9,6 +9,7 @@ import {
 } from "./createPage";
 import { parseFileName } from "./parse";
 import { upsertCaseToDescriptionPage, upsertDescriptionToFundPage, upsertFundToArchivePage } from "./updatePage";
+import { uploadFile } from "./uploadFile";
 
 const PREFIX = "Архів:";
 
@@ -25,9 +26,7 @@ const main = async (filePath: string) => {
     archive,
     fund,
     description,
-    caseName: caseNumber,
-    dateRange,
-    title,
+    caseName
   } = parsed;
 
   const bot = await Mwn.init(sourcesOptions);
@@ -38,12 +37,14 @@ const main = async (filePath: string) => {
   await createFundPage(bot, fundPage, parsed);
   const descriptionPage = `${fundPage}/${description}`;
   await createDescriptionPage(bot, descriptionPage, parsed);
-  const casePage = `${descriptionPage}/${caseNumber}`;
+  const casePage = `${descriptionPage}/${caseName}`;
   await createCasePage(bot, casePage, parsed);
 
   await upsertFundToArchivePage(bot, archivePage, parsed);
   await upsertDescriptionToFundPage(bot, fundPage, parsed);
   await upsertCaseToDescriptionPage(bot, descriptionPage, parsed);
+
+  await uploadFile(filePath);
 };
 
 const FILE_PATH = process.argv[2];
