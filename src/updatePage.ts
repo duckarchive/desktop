@@ -4,7 +4,7 @@ import { generateWikiTable } from "./templates";
 import { sortBy, uniqBy } from "lodash";
 
 const upsertItemToTable = (bot: Mwn, content: string, item: string) => {
-  const _tableContent = content.split('{| class="wikitable')[1].split("|}")[0];
+  const _tableContent = content.split('{| class="wikitable')[1].split("|}")[0].replace(/\|-\n$/, '');
   const tableContent = `{| class="wikitable${_tableContent}|}`;
   const _tableHeader = tableContent.split("\n!")[1].split("\n")[0];
   const tableHeader = _tableHeader.replace(/\|/g, "!");
@@ -33,7 +33,7 @@ const upsertItemToTable = (bot: Mwn, content: string, item: string) => {
       text: content,
     };
   } else {
-    Mwn.log(`[S] Updating table`);
+    Mwn.log(`[S] Updated table with new item: ${item}`);
     return {
       text: content.replace(tableContent, generatedTable),
       summary: parsedTableRows.length === updatedTableRows.length

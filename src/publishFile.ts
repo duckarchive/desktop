@@ -14,8 +14,8 @@ import { uploadFile } from "./uploadFile";
 const PREFIX = "Архів:";
 
 const main = async (filePath: string) => {
-  // const fileName = path.basename(filePath);
-  const parsed = parseFileName(filePath);
+  const fileName = path.basename(filePath);
+  const parsed = parseFileName(fileName);
   if (!parsed) {
     throw new Error(
       `File name "${filePath}" does not match the expected format.`
