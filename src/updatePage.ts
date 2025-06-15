@@ -1,9 +1,48 @@
 import { Mwn } from "mwn";
 import { ParsedFileName } from "./parse";
-import {
-  generateWikiTable,
-} from "./templates";
+import { generateWikiTable } from "./templates";
 import { sortBy, uniqBy } from "lodash";
+
+const upsertItemToTable = (bot: Mwn, content: string, item: string) => {
+  const _tableContent = content.split('{| class="wikitable')[1].split("|}")[0];
+  const tableContent = `{| class="wikitable${_tableContent}|}`;
+  const _tableHeader = tableContent.split("\n!")[1].split("\n")[0];
+  const tableHeader = _tableHeader.replace(/\|/g, "!");
+  const tableWithFixedHeader = tableContent.replace(_tableHeader, tableHeader);
+  const parsedTableRows = bot.Wikitext.parseTable(tableWithFixedHeader);
+
+  let indexHeader = "";
+  const newItemRow = Object.fromEntries(
+    Object.entries(parsedTableRows[0]).map(([key, value]) => {
+      if (value.includes("[[")) {
+        indexHeader = key;
+        const [start, _, end] = value.split("/");
+        return [key, `${start}/${item}/${end}`];
+      }
+      return [key, ""];
+    })
+  );
+  const updatedTableRows = sortBy(
+    uniqBy([...parsedTableRows, newItemRow], indexHeader),
+    (row) => Number(row[indexHeader].match(/\d+/)?.[0] || "0")
+  );
+  const generatedTable = generateWikiTable(updatedTableRows);
+  if (generatedTable === tableContent) {
+    Mwn.log(`[S] Table is already up to date`);
+    return {
+      text: content,
+    };
+  } else {
+    Mwn.log(`[S] Updating table`);
+    return {
+      text: content.replace(tableContent, generatedTable),
+      summary: parsedTableRows.length === updatedTableRows.length
+        ? "Відформатовано таблицю."
+        : "Додано новий елемент до таблиці та відформатовано.",
+      minor: true,
+    };
+  }
+};
 
 export const upsertFundToArchivePage = async (
   bot: Mwn,
@@ -19,46 +58,27 @@ export const upsertFundToArchivePage = async (
     pageWithPostfix = `${page}/Д`;
   }
 
-  await bot.edit(pageWithPostfix, ({ content }) => {
-    const _tableContent = content
-      .split('{| class="wikitable')[1]
-      .split("|}")[0];
-    const tableContent = `{| class="wikitable${_tableContent}|}`;
-    const _tableHeader = tableContent.split("\n!")[1].split("\n")[0];
-    const tableHeader = _tableHeader.replace(/\|/g, "!");
-    const tableWithFixedHeader = tableContent.replace(
-      _tableHeader,
-      tableHeader
-    );
-    const parsedTableRows = bot.Wikitext.parseTable(tableWithFixedHeader);
-    console.log(parsedTableRows);
+  await bot.edit(pageWithPostfix, ({ content }) =>
+    upsertItemToTable(bot, content, fund)
+  );
+};
 
-    let indexHeader = "";
-    const newItemRow = Object.fromEntries(
-      Object.entries(parsedTableRows[0]).map(([key, value]) => {
-        if (value.includes("[[")) {
-          indexHeader = key;
-          return [key, `[[../${fund}/]]`];
-        }
-        return [key, ""];
-      })
-    );
-    const updatedTableRows = sortBy(
-      uniqBy([...parsedTableRows, newItemRow], indexHeader),
-      (row) => Number(row[indexHeader].match(/\d+/)?.[0] || "0")
-    );
-    const generatedTable = generateWikiTable(updatedTableRows);
-    if (generatedTable === tableContent) {
-      return {
-        nochange: true,
-      };
-    } else {
-      console.log(`Updating ${pageWithPostfix} with new table`);
-      return {
-        text: content.replace(tableContent, generatedTable),
-        summary: "Додано новий фонд до архіву",
-        minor: true,
-      };
-    }
-  });
+export const upsertDescriptionToFundPage = async (
+  bot: Mwn,
+  page: string,
+  { description }: ParsedFileName
+) => {
+  await bot.edit(page, ({ content }) =>
+    upsertItemToTable(bot, content, description)
+  );
+};
+
+export const upsertCaseToDescriptionPage = async (
+  bot: Mwn,
+  page: string,
+  { caseName }: ParsedFileName
+) => {
+  await bot.edit(page, ({ content }) =>
+    upsertItemToTable(bot, content, caseName)
+  );
 };

@@ -15,8 +15,9 @@ export const getFundPage = ({
 
 == Описи ==
 {| class="wikitable sortable"
-!Опис||Назва||Роки||Справ
+!Опис!!Назва!!Роки!!Справ
 |-
+|[[/1/]]|| || ||
 |}`;
 };
 
@@ -34,8 +35,9 @@ export const getDescriptionPage = ({
 }}
 == Справи ==
 {| class="wikitable sortable"
-!№||Назва||Роки||Сторінки
+!№!!Назва!!Роки!!Сторінки
 |-
+|[[/1/]]|| || ||
 |}`;
 };
 
@@ -67,7 +69,7 @@ export const getWikiTextForFile = (fileName: string) => {
   return `
 =={{int:filedesc}}==
 {{Information
-|description={{uk|1=${parsed.archive} ${parsed.fund}-${parsed.description} ${parsed.case}}}
+|description={{uk|1=${parsed.archive} ${parsed.fund}-${parsed.description} ${parsed.caseName}}}
 |date=${parsed.dateRange}
 |source=${parsed.archiveFull}
 |author=${parsed.archiveFull}

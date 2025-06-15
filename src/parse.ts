@@ -50,7 +50,7 @@ export interface ParsedFileName {
   archive: string;
   fund: string;
   description: string;
-  case: string;
+  caseName: string;
   dateRange: string;
   title: string;
 }
@@ -82,7 +82,7 @@ export const parseFileName = (fileName: string): ParsedFileName | undefined => {
     archive: a,
     fund: f.replace(/^([А-Я])/, "$1-"), // replace first letter with uppercase and add hyphen
     description: d,
-    case: c,
+    caseName: c,
     dateRange: dateRange,
     title: title.trim(),
   };

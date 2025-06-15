@@ -50,7 +50,7 @@ export const createCasePage = async (
   if (casePage.missing) {
     // create the case page
     Mwn.log(
-      `Creating case page for ${data.case} in description ${data.description}`
+      `Creating case page for ${data.caseName} in description ${data.description}`
     );
     await bot.create(
       page,
@@ -59,7 +59,7 @@ export const createCasePage = async (
         dateRange: data.dateRange || "",
         fileName: data.fileName,
       }),
-      `Створення сторінки справи ${data.case}`
+      `Створення сторінки справи ${data.caseName}`
     );
   }
 };
