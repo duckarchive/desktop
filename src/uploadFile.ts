@@ -96,7 +96,7 @@ export const uploadFile = async (filePath: string, parsed: ParsedFileName) => {
     throw new Error("Final upload failed: " + JSON.stringify(finalRes.data));
   }
 
-  Mwn.log(`[S] File uploaded successfully: ${finalRes.data?.upload}`);
+  Mwn.log(`[S] File uploaded successfully: ${finalRes.data?.upload?.imageinfo?.url}`);
 
   const descriptionWikiText = getWikiTextForFile(parsed);
 

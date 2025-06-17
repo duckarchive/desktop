@@ -9,7 +9,13 @@ const upsertItemToTable = (bot: Mwn, content: string, item: string) => {
   const _tableHeader = tableContent.split("\n!")[1].split("\n")[0];
   const tableHeader = _tableHeader.replace(/\|/g, "!");
   const tableWithFixedHeader = tableContent.replace(_tableHeader, tableHeader);
-  const parsedTableRows = bot.Wikitext.parseTable(tableWithFixedHeader);
+  let parsedTableRows: Record<string, string>[] = [];
+  try {
+    parsedTableRows = bot.Wikitext.parseTable(tableWithFixedHeader);
+  } catch (error) {
+    Mwn.log(`[E] Error parsing table: ${content}`);
+    throw error;
+  }
 
   let indexHeader = "";
   const newItemRow = Object.fromEntries(
