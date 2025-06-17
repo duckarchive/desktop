@@ -60,7 +60,7 @@ export interface ParsedFileName {
 export const parseFileName = (fileName: string): ParsedFileName | undefined => {
   Mwn.log(`[I] Parsing file name: ${fileName}`);
   const match = fileName.match(
-    /^([А-ЯҐЄІЇ]+)\s([\dА-ЯҐЄІЇ]+)-([\dА-ЯҐЄІЇ]+)-([\dА-ЯҐЄІЇ]+)\.\s(\d{4}(?:-\d{4})?)\.\s(.+)$/i
+    /^([А-ЯҐЄІЇ]+)\s([\dА-ЯҐЄІЇ]+)-([\dА-ЯҐЄІЇ]+)-([\dА-ЯҐЄІЇ]+)\.\s(\d{4}(?:-\d{4})?)\.\s(.+).pdf$/i
   );
   if (!match) {
     Mwn.log(`[E] Failed to parse file name: ${fileName}`);
