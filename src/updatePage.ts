@@ -3,7 +3,7 @@ import { ParsedFileName } from "./parse";
 import { generateWikiTable } from "./templates";
 import { sortBy, uniqBy } from "lodash";
 
-const upsertItemToTable = (bot: Mwn, content: string, item: string) => {
+const upsertItemToTable = (bot: Mwn, content: string, item: string, parsed?: ParsedFileName) => {
   const _tableContent = content.split('{| class="wikitable')[1].split("|}")[0].replace(/\|-\n$/, '');
   const tableContent = `{| class="wikitable${_tableContent}|}`;
   const _tableHeader = tableContent.split("\n!")[1].split("\n")[0];
@@ -24,6 +24,12 @@ const upsertItemToTable = (bot: Mwn, content: string, item: string) => {
         indexHeader = key;
         const [start, _, end] = value.split("/");
         return [key, `${start}/${item}/${end}`];
+      }
+      if (key === "Назва") {
+        return [key, parsed?.title || ""];
+      }
+      if (key === "Рік" || key === "Роки") {
+        return [key, parsed?.dateRange || ""];
       }
       return [key, ""];
     })
@@ -82,9 +88,9 @@ export const upsertDescriptionToFundPage = async (
 export const upsertCaseToDescriptionPage = async (
   bot: Mwn,
   page: string,
-  { caseName }: ParsedFileName
+  parsed: ParsedFileName
 ) => {
   await bot.edit(page, ({ content }) =>
-    upsertItemToTable(bot, content, caseName)
+    upsertItemToTable(bot, content, parsed.caseName, parsed)
   );
 };
