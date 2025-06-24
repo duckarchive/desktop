@@ -4,8 +4,9 @@ import { generateWikiTable } from "./templates";
 import { sortBy, uniqBy } from "lodash";
 
 const upsertItemToTable = (bot: Mwn, content: string, item: string, parsed?: ParsedFileName) => {
-  const _tableContent = content.split('{| class="wikitable')[1].split("|}")[0].replace(/\|-\n$/, '');
-  const tableContent = `{| class="wikitable${_tableContent}|}`;
+  const _tableContent = content.split('{| class="wikitable')[1].split("|}")[0];
+  const cachedTableContent = `{| class="wikitable${_tableContent}|}`;
+  const tableContent = `{| class="wikitable${_tableContent.replace(/\|-\n$/, '')}|}`;
   const _tableHeader = tableContent.split("\n!")[1].split("\n")[0];
   const tableHeader = _tableHeader.replace(/\|/g, "!");
   const tableWithFixedHeader = tableContent.replace(_tableHeader, tableHeader);
@@ -28,7 +29,7 @@ const upsertItemToTable = (bot: Mwn, content: string, item: string, parsed?: Par
       if (key === "Назва") {
         return [key, parsed?.title || ""];
       }
-      if (key === "Рік" || key === "Роки") {
+      if (key === "Рік" || key === "Роки" || key === "Дата") {
         return [key, parsed?.dateRange || ""];
       }
       return [key, ""];
@@ -46,8 +47,9 @@ const upsertItemToTable = (bot: Mwn, content: string, item: string, parsed?: Par
     };
   } else {
     Mwn.log(`[S] Updated table with new item: ${item}`);
+    // console.log(`[S] Updated: ${content.replace(tableContent, generatedTable)}`);
     return {
-      text: content.replace(tableContent, generatedTable),
+      text: content.replace(cachedTableContent, generatedTable),
       summary: parsedTableRows.length === updatedTableRows.length
         ? "Відформатовано таблицю."
         : "Додано новий елемент до таблиці та відформатовано.",
