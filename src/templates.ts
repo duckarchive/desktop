@@ -53,10 +53,10 @@ export const getCasePageContent = ({
   return `{{Архіви/справа
  | назва = ${title}
  | рік = ${dateRange}
- | примітки = ${fileNameToWikiText(fileName)}
+ | link_commons = ${fileNameToWikiText(fileName)}
+ | примітки =
 }}
-
-${fileNameToWikiText(fileName, true)}`;
+`;
 };
 
 export const getWikiTextForFile = ({
@@ -81,12 +81,8 @@ export const getWikiTextForFile = ({
 {{PD-Ukraine}}{{PD-scan|PD-old-assumed-expired}}
 `;
 
-export const fileNameToWikiText = (fileName: string, isThumbnail?: boolean) => {
-  if (isThumbnail) {
-    return `[[File:${fileName}|thumb]]`;
-  }
-
-  return `[[c:File:${fileName}]]`;
+export const fileNameToWikiText = (fileName: string) => {
+  return `File:${fileName}`;
 };
 
 export const generateWikiTable = (
