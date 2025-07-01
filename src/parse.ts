@@ -75,6 +75,7 @@ export const parseFileName = (fileName: string): ParsedFileName | undefined => {
     !c ||
     !dateRange ||
     !title ||
+    title.endsWith(" ") ||
     ARCHIVES[a] === undefined
   ) {
     Mwn.log(`[E] Failed to parse file name: ${fileName}`);
