@@ -39,7 +39,7 @@ module.exports = (env, argv) => {
     },
     plugins: [
       new HtmlWebpackPlugin({
-        template: './src/renderer/index-react.html',
+        template: './src/renderer/index.html',
         filename: 'index.html'
       })
     ],

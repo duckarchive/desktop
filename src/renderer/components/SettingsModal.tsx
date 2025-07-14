@@ -147,8 +147,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         <p>
           Для завантаження файлів до Вікібібліотеки потрібно створити бота та отримати облікові дані.
           <br/>
-          <a href="https://uk.wikisource.org/wiki/%D0%A1%D0%BF%D0%B5%D1%86%D1%96%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0:%D0%9F%D0%B0%D1%80%D0%BE%D0%BB%D1%96_%D0%B1%D0%BE%D1%82%D1%96%D0%B2" target="_blank" rel="noopener noreferrer">
-            🔗 Створити пароль бота
+          <a href="https://www.mediawiki.org/wiki/Special:BotPasswords" target="_blank" rel="noopener noreferrer">
+            🔗 Створити бота
           </a>
         </p>
 
@@ -161,13 +161,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
         <form onSubmit={handleSave}>
           <div className="form-group">
-            <label htmlFor="username">Ім'я користувача Вікімедіа:</label>
+            <label htmlFor="username">Ім'я бота:</label>
             <input
               type="text"
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Ваше ім'я користувача"
+              placeholder="Ім'я бота (не ваш основний акаунт!)"
               disabled={isLoading}
             />
           </div>

@@ -320,14 +320,13 @@ const App: React.FC = () => {
 
   return (
     <div className="container">
-      <div className="icon">📚</div>
-      <h1>Менеджер Вікібібліотеки</h1>
-      <p className="subtitle">Легко завантажуйте файли до української Вікібібліотеки</p>
-      <p className="subtitle">
-        <a href="https://uk.wikisource.org/wiki/%D0%90%D1%80%D1%85%D1%96%D0%B2" target="_blank" rel="noopener noreferrer" className="project-link">
-          🏛️ Проєкт "Архів" української Вікібібліотеки
-        </a>
-      </p>
+      <header className="header">
+        <span className="icon">📚</span>
+        <div>
+          <h1>Менеджер Вікібібліотеки</h1>
+          <p className="subtitle">Легко завантажуйте файли до української Вікібібліотеки</p>
+        </div>
+      </header>
 
       <FileDropZone onFilesSelected={addFiles} onSelectClick={selectFiles} />
       
@@ -358,7 +357,7 @@ const App: React.FC = () => {
           disabled={!hasPendingFiles || isUploading}
           onClick={uploadFiles}
         >
-          Опублікувати до Вікібібліотеки
+          Почати публікацію
         </button>
         <button 
           className="btn secondary" 

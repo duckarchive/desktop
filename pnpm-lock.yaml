@@ -11,6 +11,9 @@ importers:
       axios:
         specifier: ^1.9.0
         version: 1.9.0
+      electron-reload:
+        specifier: 2.0.0-alpha.1
+        version: 2.0.0-alpha.1
       form-data:
         specifier: ^4.0.3
         version: 4.0.3
@@ -1438,6 +1441,9 @@ packages:
 
   electron-publish@25.1.7:
     resolution: {integrity: sha512-+jbTkR9m39eDBMP4gfbqglDd6UvBC7RLh5Y0MhFSsc6UkGHj9Vj9TWobxevHYMMqmoujL11ZLjfPpMX+Pt6YEg==}
+
+  electron-reload@2.0.0-alpha.1:
+    resolution: {integrity: sha512-hTde7gv0TEqxbxlB3pj2CwoyCQ9sdiQrcP8GkpzhosxyVeYM3mZbMEVKCZK3L0fED7Mz5A9IWmK7zEvi4H3P1g==}
 
   electron-to-chromium@1.5.182:
     resolution: {integrity: sha512-Lv65Btwv9W4J9pyODI6EWpdnhfvrve/us5h1WspW8B2Fb0366REPtY3hX7ounk1CkV/TBjWCEvCBBbYbmV0qCA==}
@@ -4654,6 +4660,10 @@ snapshots:
       mime: 2.6.0
     transitivePeerDependencies:
       - supports-color
+
+  electron-reload@2.0.0-alpha.1:
+    dependencies:
+      chokidar: 3.6.0
 
   electron-to-chromium@1.5.182: {}
 
