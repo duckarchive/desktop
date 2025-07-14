@@ -39,7 +39,7 @@ const FilesList: React.FC<FilesListProps> = ({ files, onRemoveFile }) => {
     }
   };
 
-  const isInProgress = files.some(file => file.status === 'uploading' || file.status === 'pending');
+  const isInProgress = files.some(file => file.status === 'uploading');
 
   return (
     <div id="files-list" style={{ display: files.length > 0 ? 'block' : 'none' }}>
