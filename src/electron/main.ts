@@ -1,37 +1,12 @@
 import { app, BrowserWindow, ipcMain, dialog, IpcMainInvokeEvent } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
-import { uploadFileWithProgress } from './uploadService';
+import { publishFileWithProgress } from './uploadService';
 import { parseFileName } from '../parse';
+import { CredentialsManager } from './credentialsManager';
 
-// Load environment variables
-import * as dotenv from 'dotenv';
-
-// Load .env file from the correct directory
-const isDev = process.env.NODE_ENV === 'development';
-let envPath: string;
-
-if (isDev) {
-  // In development, look in the project root
-  envPath = path.join(__dirname, '../../.env');
-} else {
-  // In production, look next to the executable or in app resources
-  const appRoot = path.dirname(app.getAppPath());
-  envPath = path.join(appRoot, '.env');
-  
-  // Fallback to resources directory
-  if (!fs.existsSync(envPath)) {
-    envPath = path.join(appRoot, 'resources', '.env');
-  }
-}
-
-if (fs.existsSync(envPath)) {
-  dotenv.config({ path: envPath });
-  console.log('✅ Environment variables loaded from:', envPath);
-} else {
-  console.warn('⚠️  .env file not found at:', envPath);
-  console.warn('📝 Please create a .env file with your Wikimedia credentials');
-}
+// Initialize credentials manager
+const credentialsManager = new CredentialsManager();
 
 // Enable live reload for development
 if (process.env.NODE_ENV === 'development') {
@@ -137,11 +112,12 @@ class WikiManagerApp {
     // Handle file upload
     ipcMain.handle('upload:file', async (event: IpcMainInvokeEvent, filePath: string) => {
       try {
-        // Validate environment variables first
-        if (!process.env.WIKI_BOT_USERNAME || !process.env.WIKI_BOT_PASSWORD) {
+        // Get credentials from secure storage
+        const credentials = credentialsManager.getCredentials();
+        
+        if (!credentials.username || !credentials.password) {
           throw new Error(
-            'Missing credentials! Please configure WIKI_BOT_USERNAME and WIKI_BOT_PASSWORD in your .env file.\n\n' +
-            'Expected .env location: ' + envPath
+            'Облікові дані відсутні! Будь ласка, налаштуйте свої облікові дані Вікімедіа-бота в налаштуваннях програми.'
           );
         }
 
@@ -155,24 +131,24 @@ class WikiManagerApp {
         const parsed = parseFileName(fileName);
         
         if (!parsed) {
-          throw new Error('Failed to parse filename. Please ensure the filename follows the required format.');
+          throw new Error('Не вдалося проаналізувати назву файлу. Будь ласка, переконайтеся, що назва файлу відповідає необхідному формату.');
         }
 
-        sendProgress(10, 'File parsed successfully...');
+        sendProgress(10, 'Файл успішно проаналізовано...');
 
         // Check if file exists
         if (!fs.existsSync(filePath)) {
-          throw new Error('File not found');
+          throw new Error('Файл не знайдено');
         }
 
-        sendProgress(20, 'Starting upload...');
+        sendProgress(20, 'Початок публікації...');
 
-        // Perform the upload using enhanced upload service with progress
-        await uploadFileWithProgress(filePath, parsed, sendProgress);
+        // Perform the publish using the complete publishFile logic with progress
+        await publishFileWithProgress(filePath, sendProgress, credentials);
 
         return {
           success: true,
-          message: 'File uploaded successfully to Wikisource!',
+          message: 'Файл успішно опубліковано до української Вікібібліотеки!',
           parsed
         };
 
@@ -196,14 +172,68 @@ class WikiManagerApp {
       return app.getVersion();
     });
 
-    // Handle environment status check
-    ipcMain.handle('app:getEnvStatus', () => {
+    // Handle environment status check (now credentials status)
+    ipcMain.handle('app:getCredentialsStatus', () => {
+      const storageInfo = credentialsManager.getStorageInfo();
+      const hasCredentials = credentialsManager.hasCredentials();
+      const credentials = credentialsManager.getCredentials();
+      
       return {
-        hasCredentials: !!(process.env.WIKI_BOT_USERNAME && process.env.WIKI_BOT_PASSWORD),
-        username: process.env.WIKI_BOT_USERNAME || 'Not configured',
-        envPath: envPath,
-        envExists: fs.existsSync(envPath)
+        hasCredentials,
+        username: hasCredentials ? credentials.username : 'Not configured',
+        storagePath: storageInfo.path,
+        encrypted: storageInfo.encrypted,
+        lastUpdated: storageInfo.timestamp ? new Date(storageInfo.timestamp).toLocaleString() : 'Never'
       };
+    });
+
+    // Handle credentials save
+    ipcMain.handle('credentials:save', async (event, { username, password }: { username: string; password: string }) => {
+      try {
+        const validation = credentialsManager.validateCredentials(username, password);
+        if (!validation.valid) {
+          return { success: false, message: validation.message };
+        }
+
+        const saved = credentialsManager.saveCredentials(username, password);
+        return { 
+          success: saved, 
+          message: saved ? 'Облікові дані збережено безпечно!' : 'Не вдалося зберегти облікові дані',
+          warning: validation.message.includes('Warning') ? validation.message : undefined
+        };
+      } catch (error) {
+        return { 
+          success: false, 
+          message: 'Помилка збереження облікових даних: ' + (error instanceof Error ? error.message : 'Невідома помилка')
+        };
+      }
+    });
+
+    // Handle credentials get
+    ipcMain.handle('credentials:get', () => {
+      try {
+        const credentials = credentialsManager.getCredentials();
+        return {
+          success: true,
+          credentials: {
+            username: credentials.username,
+            // Don't send password for security - only indicate if it exists
+            hasPassword: !!credentials.password
+          }
+        };
+      } catch (error) {
+        return { success: false, message: 'Не вдалося завантажити облікові дані' };
+      }
+    });
+
+    // Handle credentials clear
+    ipcMain.handle('credentials:clear', () => {
+      try {
+        const cleared = credentialsManager.clearCredentials();
+        return { success: cleared, message: cleared ? 'Облікові дані видалено!' : 'Не вдалося видалити облікові дані' };
+      } catch (error) {
+        return { success: false, message: 'Помилка видалення облікових даних' };
+      }
     });
   }
 }

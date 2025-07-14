@@ -21,14 +21,34 @@ interface ElectronAPI {
   onUploadProgress: (callback: (data: { progress: number; message: string }) => void) => void;
   removeUploadProgressListener: () => void;
 
+  // Credentials operations
+  saveCredentials: (username: string, password: string) => Promise<{
+    success: boolean;
+    message: string;
+    warning?: string;
+  }>;
+  getCredentials: () => Promise<{
+    success: boolean;
+    credentials?: {
+      username: string;
+      hasPassword: boolean;
+    };
+    message?: string;
+  }>;
+  clearCredentials: () => Promise<{
+    success: boolean;
+    message: string;
+  }>;
+
   // App operations
   quit: () => Promise<void>;
   getVersion: () => Promise<string>;
-  getEnvStatus: () => Promise<{
+  getCredentialsStatus: () => Promise<{
     hasCredentials: boolean;
     username: string;
-    envPath: string;
-    envExists: boolean;
+    storagePath: string;
+    encrypted: boolean;
+    lastUpdated: string;
   }>;
 }
 
@@ -45,6 +65,22 @@ const electronAPI: ElectronAPI = {
    * @param filePath - Path to the file to upload
    */
   uploadFile: (filePath: string) => ipcRenderer.invoke('upload:file', filePath),
+
+  /**
+   * Save credentials securely
+   */
+  saveCredentials: (username: string, password: string) => 
+    ipcRenderer.invoke('credentials:save', { username, password }),
+
+  /**
+   * Get stored credentials (username only, password existence indicator)
+   */
+  getCredentials: () => ipcRenderer.invoke('credentials:get'),
+
+  /**
+   * Clear stored credentials
+   */
+  clearCredentials: () => ipcRenderer.invoke('credentials:clear'),
 
   /**
    * Listen for upload progress updates
@@ -75,9 +111,9 @@ const electronAPI: ElectronAPI = {
   getVersion: () => ipcRenderer.invoke('app:getVersion'),
 
   /**
-   * Get environment configuration status
+   * Get credentials configuration status
    */
-  getEnvStatus: () => ipcRenderer.invoke('app:getEnvStatus'),
+  getCredentialsStatus: () => ipcRenderer.invoke('app:getCredentialsStatus'),
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

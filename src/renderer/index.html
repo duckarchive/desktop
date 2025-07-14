@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wikisource Manager</title>
+    <title>Менеджер Вікібібліотеки</title>
     <style>
         /* Modern, clean styling */
         * {
@@ -170,6 +170,128 @@
             margin-top: 0.5rem;
         }
 
+        .settings-btn {
+            background: none;
+            border: 1px solid #cbd5e0;
+            color: #4a5568;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .settings-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #718096;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: #f7fafc;
+            color: #4a5568;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-help {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-top: 0.5rem;
+        }
+
+        .storage-info {
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+            font-size: 0.85rem;
+            color: #4a5568;
+        }
+
         .icon {
             font-size: 3rem;
             margin-bottom: 1rem;
@@ -180,15 +302,20 @@
 <body>
     <div class="container">
         <div class="icon">📚</div>
-        <h1>Wikisource Manager</h1>
-        <p class="subtitle">Upload files to Wikisource with ease</p>
+        <h1>Менеджер Вікібібліотеки</h1>
+        <p class="subtitle">Легко завантажуйте файли до української Вікібібліотеки</p>
+        <p class="subtitle">
+            <a href="https://uk.wikisource.org/wiki/%D0%90%D1%80%D1%85%D1%96%D0%B2" target="_blank" style="color: #667eea; text-decoration: none;">
+                🏛️ Проєкт "Архів" української Вікібібліотеки
+            </a>
+        </p>
 
         <div class="file-drop-zone" id="dropZone">
             <div>
                 <p style="font-size: 1.2rem; margin-bottom: 1rem;">📁</p>
-                <p><strong>Click to select a file</strong></p>
+                <p><strong>Натисніть, щоб вибрати файл</strong></p>
                 <p style="font-size: 0.9rem; color: #718096; margin-top: 0.5rem;">
-                    or drag and drop a PDF file here
+                    або перетягніть PDF-файл сюди
                 </p>
             </div>
         </div>
@@ -198,7 +325,7 @@
         </div>
 
         <div class="progress-container" id="progressContainer">
-            <div class="progress-text" id="progressText">Preparing upload...</div>
+            <div class="progress-text" id="progressText">Підготовка до публікації...</div>
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
@@ -207,13 +334,49 @@
         <div class="message" id="message"></div>
 
         <div style="margin-top: 2rem;">
-            <button class="btn" id="selectBtn">Select File</button>
-            <button class="btn" id="uploadBtn" disabled>Upload to Wikisource</button>
+            <button class="btn" id="selectBtn">Вибрати файл</button>
+            <button class="btn" id="uploadBtn" disabled>Опублікувати до Вікібібліотеки</button>
         </div>
 
         <div class="footer">
-            <div>Make sure your credentials are configured in the .env file</div>
-            <div class="version" id="version">Loading version...</div>
+            <div>Налаштуйте облікові дані Вікімедіа-бота за допомогою кнопки налаштувань</div>
+            <div class="version" id="version">Завантаження версії...</div>
+            <button class="settings-btn" id="settingsBtn">⚙️ Налаштування</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🔐 Налаштування облікових даних</div>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="username">Ім'я користувача Вікімедіа-бота</label>
+                <input type="text" id="username" class="form-input" placeholder="ВашБот@ВашПроєкт">
+                <div class="form-help">
+                    Ваше ім'я користувача Вікімедіа-бота (зазвичай закінчується на @проєкт або містить "bot")
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Пароль бота</label>
+                <input type="password" id="password" class="form-input" placeholder="Пароль бота або пароль програми">
+                <div class="form-help">
+                    Ваш пароль бота або спеціальний пароль програми з Вікімедіа
+                </div>
+            </div>
+
+            <div class="storage-info" id="storageInfo">
+                Завантаження інформації про сховище...
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button class="btn secondary" id="clearCredsBtn">Очистити облікові дані</button>
+                <button class="btn" id="saveCredsBtn">Зберегти облікові дані</button>
+            </div>
         </div>
     </div>
 

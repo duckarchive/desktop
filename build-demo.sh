@@ -29,10 +29,9 @@ echo ""
 
 # Create a demo .env file if it doesn't exist
 if [ ! -f ".env" ]; then
-    echo "⚙️  Creating demo .env file..."
-    cp .env.example .env
-    echo "✅ Demo .env file created!"
-    echo "📝 Please edit .env with your Wikimedia bot credentials before using the app."
+    echo "ℹ️  Note: .env files are no longer needed!"
+    echo "📝 The app now uses secure built-in credential storage."
+    echo "✅ Use the Settings button in the app to configure credentials."
     echo ""
 fi
 
@@ -80,8 +79,16 @@ echo "   release/          - Distribution packages"
 echo ""
 
 echo "🎯 Next steps:"
-echo "   1. Edit .env with your Wikimedia credentials"
-echo "   2. Run 'pnpm electron' to test the app"
-echo "   3. Run 'pnpm dist:win' to build Windows installer"
+echo "   1. Run 'pnpm electron' to launch the app"
+echo "   2. Click '⚙️ Settings' in the app footer"
+echo "   3. Enter your Wikimedia bot credentials"
+echo "   4. Start uploading files!"
+echo "   5. Run 'pnpm dist:win' to build Windows installer"
 echo ""
-echo "✨ Happy coding!"
+echo "🔐 New Credentials System:"
+echo "   ✅ No more .env files needed"
+echo "   ✅ Secure encrypted storage"
+echo "   ✅ User-friendly settings interface"
+echo "   ✅ Cross-platform credential management"
+echo ""
+echo "✨ Happy uploading!"

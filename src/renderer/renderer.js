@@ -26,7 +26,15 @@ class WikiManagerRenderer {
             message: document.getElementById('message'),
             selectBtn: document.getElementById('selectBtn'),
             uploadBtn: document.getElementById('uploadBtn'),
-            version: document.getElementById('version')
+            version: document.getElementById('version'),
+            settingsBtn: document.getElementById('settingsBtn'),
+            settingsModal: document.getElementById('settingsModal'),
+            closeModal: document.getElementById('closeModal'),
+            username: document.getElementById('username'),
+            password: document.getElementById('password'),
+            storageInfo: document.getElementById('storageInfo'),
+            saveCredsBtn: document.getElementById('saveCredsBtn'),
+            clearCredsBtn: document.getElementById('clearCredsBtn')
         };
     }
 
@@ -39,6 +47,21 @@ class WikiManagerRenderer {
 
         // Upload button
         this.elements.uploadBtn.addEventListener('click', () => this.uploadFile());
+
+        // Settings button
+        this.elements.settingsBtn.addEventListener('click', () => this.openSettings());
+
+        // Modal close
+        this.elements.closeModal.addEventListener('click', () => this.closeSettings());
+        this.elements.settingsModal.addEventListener('click', (e) => {
+            if (e.target === this.elements.settingsModal) {
+                this.closeSettings();
+            }
+        });
+
+        // Credentials buttons
+        this.elements.saveCredsBtn.addEventListener('click', () => this.saveCredentials());
+        this.elements.clearCredsBtn.addEventListener('click', () => this.clearCredentials());
 
         // Drop zone events
         this.elements.dropZone.addEventListener('click', () => this.selectFile());
@@ -56,39 +79,46 @@ class WikiManagerRenderer {
         // Prevent default drag behaviors on document
         document.addEventListener('dragover', (e) => e.preventDefault());
         document.addEventListener('drop', (e) => e.preventDefault());
+
+        // ESC key to close modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.elements.settingsModal.classList.contains('show')) {
+                this.closeSettings();
+            }
+        });
     }
 
     /**
-     * Load and display app version and environment status
+     * Load and display app version and credentials status
      */
     async loadAppVersion() {
         try {
             if (window.electronAPI) {
                 const version = await window.electronAPI.getVersion();
-                const envStatus = await window.electronAPI.getEnvStatus();
+                const credentialsStatus = await window.electronAPI.getCredentialsStatus();
                 
                 this.elements.version.innerHTML = `
-                    Version ${version}<br>
-                    <small style="color: ${envStatus.hasCredentials ? '#38a169' : '#e53e3e'}">
-                        ${envStatus.hasCredentials ? '✅ Credentials configured' : '❌ Credentials missing'}
+                    Версія ${version}<br>
+                    <small style="color: ${credentialsStatus.hasCredentials ? '#38a169' : '#e53e3e'}">
+                        ${credentialsStatus.hasCredentials ? '✅ Облікові дані налаштовано' : '❌ Облікові дані відсутні'}
                     </small><br>
                     <small style="color: #718096">
-                        User: ${envStatus.username}
+                        Користувач: ${credentialsStatus.username}
                     </small>
                 `;
 
                 // Show warning if credentials are missing
-                if (!envStatus.hasCredentials) {
+                if (!credentialsStatus.hasCredentials) {
                     this.showMessage('error', 
-                        `Missing credentials! Please configure your .env file at:\n${envStatus.envPath}`
+                        'Облікові дані відсутні! Будь ласка, налаштуйте свої облікові дані Вікімедіа-бота за допомогою кнопки Налаштування.'
                     );
                 }
             } else {
-                this.elements.version.textContent = 'Version: Development';
+                this.elements.version.textContent = 'Версія: Розробка';
             }
         } catch (error) {
             console.error('Failed to load version:', error);
-            this.elements.version.textContent = 'Version: Unknown';
+            this.elements.version.textContent = 'Версія: Невідома';
         }
     }
 
@@ -100,7 +130,7 @@ class WikiManagerRenderer {
 
         try {
             if (!window.electronAPI) {
-                this.showMessage('error', 'Electron API not available');
+                this.showMessage('error', 'Electron API недоступне');
                 return;
             }
 
@@ -110,7 +140,7 @@ class WikiManagerRenderer {
             }
         } catch (error) {
             console.error('File selection failed:', error);
-            this.showMessage('error', 'Failed to select file: ' + error.message);
+            this.showMessage('error', 'Не вдалося вибрати файл: ' + error.message);
         }
     }
 
@@ -122,9 +152,9 @@ class WikiManagerRenderer {
         
         // Update file info display
         this.elements.fileDetails.innerHTML = `
-            <div><strong>File:</strong> ${fileData.fileName}</div>
-            <div><strong>Size:</strong> ${this.formatFileSize(fileData.fileSize)}</div>
-            <div><strong>Path:</strong> ${fileData.filePath}</div>
+            <div><strong>Файл:</strong> ${fileData.fileName}</div>
+            <div><strong>Розмір:</strong> ${this.formatFileSize(fileData.fileSize)}</div>
+            <div><strong>Шлях:</strong> ${fileData.filePath}</div>
         `;
         
         this.elements.fileInfo.classList.add('show');
@@ -179,7 +209,7 @@ class WikiManagerRenderer {
             
             // Check if it's a PDF
             if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-                this.showMessage('error', 'Please select a PDF file');
+                this.showMessage('error', 'Будь ласка, виберіть PDF-файл');
                 return;
             }
 
@@ -208,7 +238,7 @@ class WikiManagerRenderer {
             this.hideMessage();
 
             if (!window.electronAPI) {
-                throw new Error('Electron API not available');
+                throw new Error('Electron API недоступне');
             }
 
             // Start the upload
@@ -216,15 +246,15 @@ class WikiManagerRenderer {
 
             if (result.success) {
                 this.showMessage('success', result.message);
-                this.updateProgress(100, 'Upload completed successfully!');
+                this.updateProgress(100, 'Публікацію завершено успішно!');
             } else {
                 throw new Error(result.message);
             }
 
         } catch (error) {
             console.error('Upload failed:', error);
-            this.showMessage('error', 'Upload failed: ' + error.message);
-            this.updateProgress(0, 'Upload failed');
+            this.showMessage('error', 'Публікація не вдалася: ' + error.message);
+            this.updateProgress(0, 'Публікація не вдалася');
         } finally {
             this.isUploading = false;
             this.elements.uploadBtn.disabled = false;
@@ -253,6 +283,134 @@ class WikiManagerRenderer {
      */
     hideMessage() {
         this.elements.message.classList.remove('show');
+    }
+
+    /**
+     * Open settings modal
+     */
+    async openSettings() {
+        try {
+            this.elements.settingsModal.classList.add('show');
+            
+            // Load current credentials and storage info
+            if (window.electronAPI) {
+                const [credentials, status] = await Promise.all([
+                    window.electronAPI.getCredentials(),
+                    window.electronAPI.getCredentialsStatus()
+                ]);
+
+                if (credentials.success && credentials.credentials) {
+                    this.elements.username.value = credentials.credentials.username || '';
+                    this.elements.password.value = ''; // Never populate password field
+                    this.elements.password.placeholder = credentials.credentials.hasPassword ? 
+                        'Пароль збережено (залиште порожнім, щоб зберегти поточний)' : 'Введіть пароль бота';
+                }
+
+                // Update storage info
+                this.elements.storageInfo.innerHTML = `
+                    <div><strong>Інформація про сховище:</strong></div>
+                    <div>📁 Шлях: ${status.storagePath}</div>
+                    <div>🔐 Шифрування: ${status.encrypted ? 'Увімкнено' : 'Тільки Base64'}</div>
+                    <div>🕐 Останнє оновлення: ${status.lastUpdated}</div>
+                `;
+            }
+        } catch (error) {
+            console.error('Failed to load settings:', error);
+            this.showMessage('error', 'Не вдалося завантажити налаштування');
+        }
+    }
+
+    /**
+     * Close settings modal
+     */
+    closeSettings() {
+        this.elements.settingsModal.classList.remove('show');
+        // Clear form
+        this.elements.username.value = '';
+        this.elements.password.value = '';
+        this.elements.password.placeholder = 'Bot password or app password';
+    }
+
+    /**
+     * Save credentials
+     */
+    async saveCredentials() {
+        try {
+            const username = this.elements.username.value.trim();
+            const password = this.elements.password.value;
+
+            if (!username) {
+                this.showMessage('error', 'Необхідно вказати ім\'я користувача');
+                return;
+            }
+
+            // If password is empty and we have saved credentials, keep the current password
+            if (!password) {
+                const current = await window.electronAPI.getCredentials();
+                if (!current.success || !current.credentials?.hasPassword) {
+                    this.showMessage('error', 'Необхідно вказати пароль');
+                    return;
+                }
+                // If we have a saved password and user left field empty, just update username
+                // This is handled by the backend
+            }
+
+            this.elements.saveCredsBtn.disabled = true;
+            this.elements.saveCredsBtn.textContent = 'Збереження...';
+
+            const result = await window.electronAPI.saveCredentials(username, password || '');
+
+            if (result.success) {
+                this.showMessage('success', result.message);
+                if (result.warning) {
+                    setTimeout(() => {
+                        this.showMessage('error', result.warning);
+                    }, 3000);
+                }
+                this.closeSettings();
+                // Reload version info to update status
+                this.loadAppVersion();
+            } else {
+                this.showMessage('error', result.message);
+            }
+        } catch (error) {
+            console.error('Failed to save credentials:', error);
+            this.showMessage('error', 'Не вдалося зберегти облікові дані: ' + error.message);
+        } finally {
+            this.elements.saveCredsBtn.disabled = false;
+            this.elements.saveCredsBtn.textContent = 'Зберегти облікові дані';
+        }
+    }
+
+    /**
+     * Clear credentials
+     */
+    async clearCredentials() {
+        try {
+            if (!confirm('Ви впевнені, що хочете видалити всі збережені облікові дані?')) {
+                return;
+            }
+
+            this.elements.clearCredsBtn.disabled = true;
+            this.elements.clearCredsBtn.textContent = 'Видалення...';
+
+            const result = await window.electronAPI.clearCredentials();
+
+            if (result.success) {
+                this.showMessage('success', result.message);
+                this.closeSettings();
+                // Reload version info to update status
+                this.loadAppVersion();
+            } else {
+                this.showMessage('error', result.message);
+            }
+        } catch (error) {
+            console.error('Failed to clear credentials:', error);
+            this.showMessage('error', 'Не вдалося видалити облікові дані: ' + error.message);
+        } finally {
+            this.elements.clearCredsBtn.disabled = false;
+            this.elements.clearCredsBtn.textContent = 'Видалити облікові дані';
+        }
     }
 }
 

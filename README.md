@@ -7,15 +7,17 @@ A desktop application for uploading files to Wikisource with a simple, user-frie
 - 🖥️ **Desktop GUI** - Clean, modern interface built with Electron
 - 📁 **File Selection** - Click to browse or drag & drop PDF files
 - 📊 **Progress Tracking** - Real-time upload progress with status updates
-- 🔒 **Secure** - Uses contextBridge for secure main-renderer communication
+- � **Secure Credentials** - Built-in encrypted credentials storage (no .env files!)
+- �🔒 **Secure Architecture** - Uses contextBridge for secure main-renderer communication
 - 📦 **Cross-platform** - Runs on Windows, macOS, and Linux
 - 🚀 **Fast Uploads** - Chunked upload support for large files
+- ⚙️ **Settings UI** - Easy credential management through graphical interface
 
 ## Prerequisites
 
 1. **Node.js** (v16 or higher)
 2. **pnpm** package manager
-3. **Wikimedia bot credentials** (username and password)
+3. **Wikimedia bot credentials** (get from Special:BotPasswords)
 
 ## Setup
 
@@ -24,22 +26,18 @@ A desktop application for uploading files to Wikisource with a simple, user-frie
    pnpm install
    ```
 
-2. **Configure credentials:**
-   ```bash
-   cp .env.example .env
-   # Edit .env file with your Wikimedia bot credentials
-   ```
-
-   **Important:** Environment variables are loaded at **runtime**, not during compilation. The app will:
-   - ✅ Load `.env` from project root in development
-   - ✅ Look for `.env` next to executable in production
-   - ✅ Show credential status in the app footer
-   - ⚠️ Display helpful error messages if credentials are missing
-
-3. **Build the application:**
+2. **Build the application:**
    ```bash
    pnpm build:electron
    ```
+
+3. **Configure credentials:**
+   - Launch the app: `pnpm electron`
+   - Click the "⚙️ Settings" button in the footer
+   - Enter your Wikimedia bot credentials
+   - Click "Save Credentials"
+
+   **New!** Credentials are now stored securely using Electron's built-in encryption, no more `.env` files needed!
 
 ## Development
 
@@ -96,17 +94,18 @@ pnpm dist
 
 ```
 src/
-├── electron/           # Electron-specific code
-│   ├── main.ts        # Main process (Node.js)
-│   ├── preload.ts     # Preload script (security bridge)
-│   └── uploadService.ts # Enhanced upload service
-├── renderer/          # Renderer process (Web UI)
-│   ├── index.html     # Main UI
-│   └── renderer.js    # UI logic
-├── uploadFile.ts      # Original upload logic
-├── parse.ts          # Filename parsing
-├── templates.ts      # Wiki templates
-└── index.ts          # Common configurations
+├── electron/              # Electron-specific code
+│   ├── main.ts           # Main process (Node.js)
+│   ├── preload.ts        # Preload script (security bridge)
+│   ├── uploadService.ts  # Enhanced upload service
+│   └── credentialsManager.ts # Secure credentials storage
+├── renderer/             # Renderer process (Web UI)
+│   ├── index.html        # Main UI with settings modal
+│   └── renderer.js       # UI logic with credentials management
+├── uploadFile.ts         # Original upload logic
+├── parse.ts             # Filename parsing
+├── templates.ts         # Wiki templates
+└── index.ts             # Common configurations
 ```
 
 ## Security Features
@@ -115,6 +114,8 @@ src/
 - **Preload Script** - Secure communication between main and renderer
 - **No Node.js in Renderer** - Web content cannot access Node.js APIs directly
 - **Controlled API** - Only specific functions exposed to renderer
+- **Encrypted Credentials** - Uses Electron's safeStorage API for credential encryption
+- **Secure Storage** - Credentials stored in OS-specific user data directories
 
 ## Supported Archives
 
@@ -127,18 +128,28 @@ The app supports uploading to various Ukrainian state archives including:
 
 ### Common Issues:
 
-1. **"Failed to parse filename"**
+1. **"❌ Credentials missing"**
+   - Click the ⚙️ Settings button in the app footer
+   - Enter your Wikimedia bot username and password
+   - Click "Save Credentials"
+
+2. **"Failed to parse filename"**
    - Ensure filename follows the required format
    - Check that archive abbreviation is supported
 
-2. **"Upload failed"**
-   - Verify .env credentials are correct
+3. **"Upload failed"**
+   - Verify credentials are correct in Settings
    - Check internet connection
    - Ensure file is a valid PDF
 
-3. **"Electron API not available"**
+4. **"Electron API not available"**
    - App may be running in browser instead of Electron
    - Rebuild and restart the application
+
+5. **Can't save credentials**
+   - Check username format (should be like "YourBot@project")
+   - Ensure password is at least 8 characters
+   - Verify app has write permissions to user data directory
 
 ### Development Issues:
 
