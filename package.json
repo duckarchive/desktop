@@ -1,14 +1,23 @@
 {
   "name": "@duckarchive/wiki-manager",
   "version": "0.0.1",
-  "description": "",
-  "main": "index.js",
+  "description": "Wikisource file uploader desktop application",
+  "main": "dist/electron/main.js",
+  "homepage": "./",
   "scripts": {
     "page:edit": "pnpm build && dotenv -e .env -- node dist/editPage.js",
     "page:delete": "pnpm build && dotenv -e .env -- node dist/deletePage.js",
     "file:publish": "pnpm build && dotenv -e .env -- node dist/publishFile.js",
     "build": "rm -rf dist && tsc",
-    "start": "node dist/index.js"
+    "build:electron": "pnpm build && npm run build:renderer",
+    "build:renderer": "cp -r src/renderer dist/",
+    "start": "node dist/index.js",
+    "electron": "pnpm build:electron && dotenv -e .env -- electron .",
+    "electron:dev": "pnpm build && dotenv -e .env -- electron .",
+    "electron:watch": "dotenv -e .env -- nodemon",
+    "pack": "pnpm build:electron && node -e \"console.log('📦 Creating package...')\" && electron-builder --dir",
+    "dist": "pnpm build:electron && node -e \"console.log('🚀 Building installer...')\" && electron-builder",
+    "dist:win": "pnpm build:electron && node -e \"console.log('🏗️ Building Windows installer...')\" && electron-builder --win"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +28,8 @@
     "@types/node": "^24.0.1",
     "dotenv": "^16.5.0",
     "dotenv-cli": "^8.0.0",
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
@@ -28,5 +39,26 @@
     "form-data": "^4.0.3",
     "lodash": "^4.17.21",
     "mwn": "^3.0.1"
+  },
+  "build": {
+    "appId": "com.duckarchive.wiki-manager",
+    "productName": "Wikisource Manager",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*",
+      "package.json",
+      ".env.example"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }
