@@ -109,6 +109,33 @@ class WikiManagerApp {
       };
     });
 
+    // Handle multiple files selection dialog
+    ipcMain.handle('dialog:openFiles', async () => {
+      if (!this.mainWindow) return null;
+
+      const result = await dialog.showOpenDialog(this.mainWindow, {
+        properties: ['openFile', 'multiSelections'],
+        filters: [
+          { name: 'PDF Files', extensions: ['pdf'] },
+          { name: 'All Files', extensions: ['*'] }
+        ]
+      });
+
+      if (result.canceled || result.filePaths.length === 0) {
+        return [];
+      }
+
+      return result.filePaths.map(filePath => {
+        const fileName = path.basename(filePath);
+        const fileSize = fs.statSync(filePath).size;
+        return {
+          filePath,
+          fileName,
+          fileSize
+        };
+      });
+    });
+
     // Handle file upload
     ipcMain.handle('upload:file', async (event: IpcMainInvokeEvent, filePath: string) => {
       try {
@@ -144,11 +171,12 @@ class WikiManagerApp {
         sendProgress(20, 'Початок публікації...');
 
         // Perform the publish using the complete publishFile logic with progress
-        await publishFileWithProgress(filePath, sendProgress, credentials);
+        const publishResult = await publishFileWithProgress(filePath, sendProgress, credentials);
 
         return {
           success: true,
           message: 'Файл успішно опубліковано до української Вікібібліотеки!',
+          pageUrl: publishResult.casePageUrl,
           parsed
         };
 
@@ -170,6 +198,29 @@ class WikiManagerApp {
     // Handle app version
     ipcMain.handle('app:getVersion', () => {
       return app.getVersion();
+    });
+
+    // Handle filename validation
+    ipcMain.handle('validate:fileName', async (event: IpcMainInvokeEvent, fileName: string) => {
+      try {
+        const parsed = parseFileName(fileName);
+        if (parsed) {
+          return {
+            isValid: true,
+            parsed
+          };
+        } else {
+          return {
+            isValid: false,
+            error: 'Назва файлу не відповідає очікуваному формату'
+          };
+        }
+      } catch (error) {
+        return {
+          isValid: false,
+          error: 'Помилка аналізу назви файлу: ' + (error instanceof Error ? error.message : 'Невідома помилка')
+        };
+      }
     });
 
     // Handle environment status check (now credentials status)

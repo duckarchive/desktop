@@ -9,10 +9,17 @@ interface ElectronAPI {
     fileSize: number;
   } | null>;
 
+  openFiles: () => Promise<Array<{
+    filePath: string;
+    fileName: string;
+    fileSize: number;
+  }>>;
+
   // Upload operations
   uploadFile: (filePath: string) => Promise<{
     success: boolean;
     message: string;
+    pageUrl?: string;
     parsed?: any;
     error?: any;
   }>;
@@ -50,6 +57,13 @@ interface ElectronAPI {
     encrypted: boolean;
     lastUpdated: string;
   }>;
+
+  // Validation operations
+  validateFileName: (fileName: string) => Promise<{
+    isValid: boolean;
+    parsed?: any;
+    error?: string;
+  }>;
 }
 
 // Expose protected methods that allow the renderer process to use
@@ -59,6 +73,11 @@ const electronAPI: ElectronAPI = {
    * Opens a file dialog and returns file information
    */
   openFile: () => ipcRenderer.invoke('dialog:openFile'),
+
+  /**
+   * Opens a file dialog and returns multiple file information
+   */
+  openFiles: () => ipcRenderer.invoke('dialog:openFiles'),
 
   /**
    * Uploads a file to Wikisource
@@ -114,6 +133,12 @@ const electronAPI: ElectronAPI = {
    * Get credentials configuration status
    */
   getCredentialsStatus: () => ipcRenderer.invoke('app:getCredentialsStatus'),
+
+  /**
+   * Validate the file name format and availability
+   * @param fileName - The name of the file to validate
+   */
+  validateFileName: (fileName: string) => ipcRenderer.invoke('validate:fileName', fileName),
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

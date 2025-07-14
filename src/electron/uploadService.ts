@@ -115,12 +115,16 @@ export const publishFileWithProgress = async (
 
     progress(100, "Публікацію завершено успішно!");
 
+    // Generate the case page URL
+    const casePageUrl = `https://uk.wikisource.org/wiki/${encodeURIComponent(casePage)}`;
+
     return {
       success: true,
       archivePage,
       fundPage,
       descriptionPage,
       casePage,
+      casePageUrl,
       fileName
     };
 

@@ -5,8 +5,9 @@
 
 class WikiManagerRenderer {
     constructor() {
-        this.selectedFile = null;
+        this.selectedFiles = [];
         this.isUploading = false;
+        this.uploadResults = [];
         this.initializeElements();
         this.setupEventListeners();
         this.loadAppVersion();
@@ -18,14 +19,15 @@ class WikiManagerRenderer {
     initializeElements() {
         this.elements = {
             dropZone: document.getElementById('dropZone'),
-            fileInfo: document.getElementById('fileInfo'),
-            fileDetails: document.getElementById('fileDetails'),
+            filesList: document.getElementById('filesList'),
             progressContainer: document.getElementById('progressContainer'),
             progressFill: document.getElementById('progressFill'),
             progressText: document.getElementById('progressText'),
+            uploadResults: document.getElementById('uploadResults'),
+            resultsList: document.getElementById('resultsList'),
             message: document.getElementById('message'),
-            selectBtn: document.getElementById('selectBtn'),
             uploadBtn: document.getElementById('uploadBtn'),
+            clearBtn: document.getElementById('clearBtn'),
             version: document.getElementById('version'),
             settingsBtn: document.getElementById('settingsBtn'),
             settingsModal: document.getElementById('settingsModal'),
@@ -42,11 +44,11 @@ class WikiManagerRenderer {
      * Setup all event listeners
      */
     setupEventListeners() {
-        // File selection button
-        this.elements.selectBtn.addEventListener('click', () => this.selectFile());
-
         // Upload button
-        this.elements.uploadBtn.addEventListener('click', () => this.uploadFile());
+        this.elements.uploadBtn.addEventListener('click', () => this.uploadFiles());
+
+        // Clear files button
+        this.elements.clearBtn.addEventListener('click', () => this.clearFiles());
 
         // Settings button
         this.elements.settingsBtn.addEventListener('click', () => this.openSettings());
@@ -63,11 +65,25 @@ class WikiManagerRenderer {
         this.elements.saveCredsBtn.addEventListener('click', () => this.saveCredentials());
         this.elements.clearCredsBtn.addEventListener('click', () => this.clearCredentials());
 
-        // Drop zone events
-        this.elements.dropZone.addEventListener('click', () => this.selectFile());
+        // Drop zone events (clicking opens file dialog)
+        this.elements.dropZone.addEventListener('click', () => this.selectFiles());
         this.elements.dropZone.addEventListener('dragover', (e) => this.handleDragOver(e));
         this.elements.dropZone.addEventListener('dragleave', (e) => this.handleDragLeave(e));
         this.elements.dropZone.addEventListener('drop', (e) => this.handleDrop(e));
+
+        // File list event delegation for remove buttons
+        this.elements.filesList.addEventListener('click', (e) => {
+          console.log('File list click event:', e);
+            if (e.target.classList.contains('file-remove')) {
+                console.log('Contains file-remove:', e.target);
+                const fileItem = e.target.closest('.file-item');
+                if (fileItem) {
+                    console.log('Contains file-remove:', e.target);
+                    const fileId = fileItem.getAttribute('data-file-id');
+                    this.removeFile(fileId);
+                }
+            }
+        });
 
         // Listen for upload progress updates
         if (window.electronAPI) {
@@ -98,13 +114,10 @@ class WikiManagerRenderer {
                 const credentialsStatus = await window.electronAPI.getCredentialsStatus();
                 
                 this.elements.version.innerHTML = `
-                    Версія ${version}<br>
                     <small style="color: ${credentialsStatus.hasCredentials ? '#38a169' : '#e53e3e'}">
-                        ${credentialsStatus.hasCredentials ? '✅ Облікові дані налаштовано' : '❌ Облікові дані відсутні'}
+                        ${credentialsStatus.hasCredentials ? `✅ Авторизовано: ${credentialsStatus.username}` : '❌ Облікові дані відсутні'}
                     </small><br>
-                    <small style="color: #718096">
-                        Користувач: ${credentialsStatus.username}
-                    </small>
+                    Версія ${version}
                 `;
 
                 // Show warning if credentials are missing
@@ -125,7 +138,7 @@ class WikiManagerRenderer {
     /**
      * Handle file selection through dialog
      */
-    async selectFile() {
+    async selectFiles() {
         if (this.isUploading) return;
 
         try {
@@ -134,32 +147,146 @@ class WikiManagerRenderer {
                 return;
             }
 
-            const fileData = await window.electronAPI.openFile();
-            if (fileData) {
-                this.setSelectedFile(fileData);
+            const fileDataList = await window.electronAPI.openFiles();
+            if (fileDataList && fileDataList.length > 0) {
+                await this.addFiles(fileDataList);
             }
         } catch (error) {
             console.error('File selection failed:', error);
-            this.showMessage('error', 'Не вдалося вибрати файл: ' + error.message);
+            this.showMessage('error', 'Не вдалося вибрати файли: ' + error.message);
         }
     }
 
     /**
-     * Set the selected file and update UI
+     * Add files to the selection and update UI
      */
-    setSelectedFile(fileData) {
-        this.selectedFile = fileData;
+    async addFiles(fileDataList) {
+        const validFiles = [];
+        const invalidFiles = [];
+
+        // Validate each file
+        for (const fileData of fileDataList) {
+            const exists = this.selectedFiles.some(f => f.fileName === fileData.fileName && f.fileSize === fileData.fileSize);
+            if (exists) {
+                continue; // Skip duplicates
+            }
+
+            // Validate filename format
+            const validation = await this.validateFileName(fileData.fileName);
+            if (validation.isValid) {
+                validFiles.push({
+                    ...fileData,
+                    id: Date.now() + Math.random(), // Unique ID for each file
+                    status: 'pending',
+                    parsed: validation.parsed
+                });
+            } else {
+                invalidFiles.push({
+                    fileName: fileData.fileName,
+                    error: validation.error
+                });
+            }
+        }
+
+        // Add valid files to selection
+        this.selectedFiles.push(...validFiles);
+
+        // Show validation results
+        if (invalidFiles.length > 0) {
+            this.showFileValidationErrors(invalidFiles, validFiles.length);
+        } else if (validFiles.length > 0) {
+            this.showMessage('success', `Додано ${validFiles.length} файл(ів) до списку`);
+        }
+
+        this.updateFilesDisplay();
+        this.updateUploadButton();
         
-        // Update file info display
-        this.elements.fileDetails.innerHTML = `
-            <div><strong>Файл:</strong> ${fileData.fileName}</div>
-            <div><strong>Розмір:</strong> ${this.formatFileSize(fileData.fileSize)}</div>
-            <div><strong>Шлях:</strong> ${fileData.filePath}</div>
-        `;
+        if (validFiles.length === 0 && invalidFiles.length > 0) {
+            // Don't hide message if there are only validation errors
+        } else {
+            this.hideMessage();
+        }
+    }
+
+    /**
+     * Update the files list display
+     */
+    updateFilesDisplay() {
+        if (this.selectedFiles.length === 0) {
+            this.elements.filesList.innerHTML = '';
+            this.elements.clearBtn.style.display = 'none';
+            return;
+        }
+
+        this.elements.clearBtn.style.display = 'inline-block';
         
-        this.elements.fileInfo.classList.add('show');
-        this.elements.uploadBtn.disabled = false;
+        this.elements.filesList.innerHTML = this.selectedFiles.map(file => {
+            let statusHtml = '';
+            let cssClass = '';
+            
+            switch (file.status) {
+                case 'pending':
+                    statusHtml = '<span class="file-status">Очікує завантаження</span>';
+                    break;
+                case 'uploading':
+                    cssClass = 'uploading';
+                    statusHtml = '<span class="file-status">Завантажується...</span>';
+                    break;
+                case 'success':
+                    cssClass = 'success';
+                    statusHtml = `<span class="file-status">✅ Завантажено</span>`;
+                    if (file.pageUrl) {
+                        statusHtml += `<br><a href="${file.pageUrl}" class="file-link" target="_blank">Переглянути сторінку</a>`;
+                    }
+                    break;
+                case 'error':
+                    cssClass = 'error';
+                    statusHtml = `<span class="file-status">❌ Помилка: ${file.error}</span>`;
+                    break;
+            }
+
+            return `
+                <div class="file-item ${cssClass}" data-file-id="${file.id}">
+                    <div class="file-info-left">
+                        <div class="file-name">${file.fileName}</div>
+                        <div class="file-size">${this.formatFileSize(file.fileSize)}</div>
+                        ${statusHtml}
+                    </div>
+                    ${file.status === 'pending' ? `<button class="file-remove">Видалити</button>` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    /**
+     * Remove a file from the selection
+     */
+    removeFile(fileId) {
+        this.selectedFiles = this.selectedFiles.filter(f => f.id !== fileId);
+        this.updateFilesDisplay();
+        this.updateUploadButton();
+    }
+
+    /**
+     * Clear all files
+     */
+    clearFiles() {
+        if (this.isUploading) return;
+        
+        this.selectedFiles = [];
+        this.uploadResults = [];
+        this.updateFilesDisplay();
+        this.updateUploadButton();
+        this.elements.uploadResults.classList.remove('show');
         this.hideMessage();
+    }
+
+    /**
+     * Update upload button state
+     */
+    updateUploadButton() {
+        const hasPendingFiles = this.selectedFiles.some(f => f.status === 'pending');
+        this.elements.uploadBtn.disabled = !hasPendingFiles || this.isUploading;
     }
 
     /**
@@ -197,43 +324,48 @@ class WikiManagerRenderer {
     /**
      * Handle file drop event
      */
-    handleDrop(e) {
+    async handleDrop(e) {
         e.preventDefault();
         this.elements.dropZone.classList.remove('dragover');
         
         if (this.isUploading) return;
 
         const files = Array.from(e.dataTransfer.files);
-        if (files.length > 0) {
-            const file = files[0];
-            
-            // Check if it's a PDF
-            if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-                this.showMessage('error', 'Будь ласка, виберіть PDF-файл');
-                return;
-            }
+        const validFiles = files.filter(file => {
+            return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+        });
 
-            // Create file data object similar to what the dialog returns
-            const fileData = {
-                filePath: file.path, // Note: file.path might not be available in all contexts
-                fileName: file.name,
-                fileSize: file.size
-            };
-
-            this.setSelectedFile(fileData);
+        if (validFiles.length === 0) {
+            this.showMessage('error', 'Будь ласка, виберіть PDF-файли');
+            return;
         }
+
+        if (validFiles.length !== files.length) {
+            this.showMessage('warning', `Додано тільки ${validFiles.length} PDF-файлів з ${files.length} обраних`);
+        }
+
+        // Create file data objects
+        const fileDataList = validFiles.map(file => ({
+            filePath: file.path || file.name, // Fallback for drag-drop
+            fileName: file.name,
+            fileSize: file.size,
+            file: file // Keep reference for later use
+        }));
+
+        await this.addFiles(fileDataList);
     }
 
     /**
-     * Upload the selected file
+     * Upload all selected files
      */
-    async uploadFile() {
-        if (!this.selectedFile || this.isUploading) return;
+    async uploadFiles() {
+        const pendingFiles = this.selectedFiles.filter(f => f.status === 'pending');
+        if (pendingFiles.length === 0 || this.isUploading) return;
 
         try {
             this.isUploading = true;
             this.elements.uploadBtn.disabled = true;
-            this.elements.selectBtn.disabled = true;
+            this.elements.clearBtn.disabled = true;
             this.elements.progressContainer.classList.add('show');
             this.hideMessage();
 
@@ -241,25 +373,110 @@ class WikiManagerRenderer {
                 throw new Error('Electron API недоступне');
             }
 
-            // Start the upload
-            const result = await window.electronAPI.uploadFile(this.selectedFile.filePath);
+            this.uploadResults = [];
+            let successCount = 0;
+            let errorCount = 0;
 
-            if (result.success) {
-                this.showMessage('success', result.message);
-                this.updateProgress(100, 'Публікацію завершено успішно!');
+            // Upload files one by one
+            for (let i = 0; i < pendingFiles.length; i++) {
+                const file = pendingFiles[i];
+                const progressText = `Завантаження ${i + 1} з ${pendingFiles.length}: ${file.fileName}`;
+                
+                this.updateProgress((i / pendingFiles.length) * 100, progressText);
+                
+                // Update file status to uploading
+                file.status = 'uploading';
+                this.updateFilesDisplay();
+
+                try {
+                    // Start the upload for this file
+                    const result = await window.electronAPI.uploadFile(file.filePath);
+
+                    if (result.success) {
+                        file.status = 'success';
+                        file.pageUrl = result.pageUrl; // Store the page URL
+                        successCount++;
+                        
+                        this.uploadResults.push({
+                            fileName: file.fileName,
+                            success: true,
+                            pageUrl: result.pageUrl,
+                            message: result.message
+                        });
+                    } else {
+                        throw new Error(result.message);
+                    }
+                } catch (fileError) {
+                    console.error(`Upload failed for ${file.fileName}:`, fileError);
+                    file.status = 'error';
+                    file.error = fileError.message;
+                    errorCount++;
+                    
+                    this.uploadResults.push({
+                        fileName: file.fileName,
+                        success: false,
+                        error: fileError.message
+                    });
+                }
+
+                this.updateFilesDisplay();
+            }
+
+            // Show final results
+            this.updateProgress(100, `Завершено: ${successCount} успішно, ${errorCount} помилок`);
+            this.showUploadResults();
+
+            if (errorCount === 0) {
+                this.showMessage('success', `Всі файли (${successCount}) успішно опубліковано!`);
+            } else if (successCount === 0) {
+                this.showMessage('error', `Жоден файл не вдалося опублікувати (${errorCount} помилок)`);
             } else {
-                throw new Error(result.message);
+                this.showMessage('warning', `${successCount} файлів опубліковано, ${errorCount} з помилками`);
             }
 
         } catch (error) {
-            console.error('Upload failed:', error);
-            this.showMessage('error', 'Публікація не вдалася: ' + error.message);
+            console.error('Upload process failed:', error);
+            this.showMessage('error', 'Процес публікації не вдався: ' + error.message);
             this.updateProgress(0, 'Публікація не вдалася');
         } finally {
             this.isUploading = false;
             this.elements.uploadBtn.disabled = false;
-            this.elements.selectBtn.disabled = false;
+            this.elements.clearBtn.disabled = false;
+            this.updateUploadButton();
         }
+    }
+
+    /**
+     * Show upload results
+     */
+    showUploadResults() {
+        if (this.uploadResults.length === 0) return;
+
+        const resultsHtml = this.uploadResults.map(result => {
+            if (result.success) {
+                return `
+                    <div class="file-item success">
+                        <div class="file-info-left">
+                            <div class="file-name">✅ ${result.fileName}</div>
+                            <div class="file-status">${result.message}</div>
+                            ${result.pageUrl ? `<a href="${result.pageUrl}" class="file-link" target="_blank">Переглянути сторінку</a>` : ''}
+                        </div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="file-item error">
+                        <div class="file-info-left">
+                            <div class="file-name">❌ ${result.fileName}</div>
+                            <div class="file-status">Помилка: ${result.error}</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }).join('');
+
+        this.elements.resultsList.innerHTML = resultsHtml;
+        this.elements.uploadResults.classList.add('show');
     }
 
     /**
@@ -412,11 +629,70 @@ class WikiManagerRenderer {
             this.elements.clearCredsBtn.textContent = 'Видалити облікові дані';
         }
     }
+
+    /**
+     * Validate filename format using parseFileName
+     */
+    async validateFileName(fileName) {
+        try {
+            if (!window.electronAPI) {
+                return {
+                    isValid: false,
+                    error: 'Electron API недоступне'
+                };
+            }
+
+            const result = await window.electronAPI.validateFileName(fileName);
+            return result;
+        } catch (error) {
+            console.error('Filename validation failed:', error);
+            return {
+                isValid: false,
+                error: 'Помилка валідації: ' + error.message
+            };
+        }
+    }
+
+    /**
+     * Show file validation errors with helpful format description
+     */
+    showFileValidationErrors(invalidFiles, validCount) {
+        const errorList = invalidFiles.map(f => `• ${f.fileName}: ${f.error}`).join('<br>');
+        
+        const formatExample = 'ЦДАВО Р-1-2-3. 1920-1930. Назва документу.pdf';
+        const formatDescription = `
+            <div style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 6px; text-align: left;">
+                <strong>Очікуваний формат назви файлу:</strong><br>
+                <code style="background: #e9ecef; padding: 0.2rem 0.4rem; border-radius: 3px;">${formatExample}</code><br><br>
+                <strong>Структура:</strong><br>
+                • <strong>АРХІВ</strong> - код архіву (наприклад: ЦДАВО, ДАЛО, ЦДІАК)<br>
+                • <strong>Фонд</strong> - номер або код фонду (наприклад: Р1, 123, П45)<br>
+                • <strong>Опис-Справа</strong> - через дефіс (наприклад: 2-3, 15-248)<br>
+                • <strong>Роки</strong> - рік або діапазон років (наприклад: 1920, 1920-1930)<br>
+                • <strong>Назва</strong> - описова назва документу<br><br>
+                <strong>Приклади правильних назв:</strong><br>
+                • ЦДАВО Р1-2-3. 1920. Протокол засідання.pdf<br>
+                • ДАЛО 123-4-56. 1925-1930. Листування.pdf<br>
+                • ЦДІАК П789-10-11. 1918. Акт передачі.pdf
+            </div>
+        `;
+
+        let message = `<strong>Помилки у назвах файлів (${invalidFiles.length}):</strong><br>${errorList}`;
+        
+        if (validCount > 0) {
+            message = `<strong>Додано ${validCount} файл(ів). Помилки у ${invalidFiles.length} файлах:</strong><br>${errorList}`;
+        }
+        
+        message += formatDescription;
+
+        this.elements.message.className = 'message show error';
+        this.elements.message.innerHTML = message;
+    }
 }
 
 // Initialize the renderer when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new WikiManagerRenderer();
+    window.app = new WikiManagerRenderer();
 });
 
 // Handle any uncaught errors
