@@ -68,6 +68,9 @@ export const upsertFundToArchivePage = async (
     pageWithPostfix = `${page}/Р`;
   } else if (fund.startsWith("П")) {
     pageWithPostfix = `${page}/П`;
+  } else if (page.includes(":ЦД")) {
+    // central archives don't have fund splitting by period
+    pageWithPostfix = `${page}`;
   } else {
     pageWithPostfix = `${page}/Д`;
   }
