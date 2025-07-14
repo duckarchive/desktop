@@ -8,7 +8,7 @@ import { ParsedFileName } from "./parse";
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
 
-export const uploadFile = async (filePath: string, parsed: ParsedFileName) => {
+export const uploadFile = async (filePath: string, parsed: ParsedFileName, onProgress?: (progress: number) => void) => {
   const bot = await Mwn.init(commonsOptions);
   const csrfToken = await bot.getCsrfToken();
 
@@ -60,6 +60,10 @@ export const uploadFile = async (filePath: string, parsed: ParsedFileName) => {
 
     filekey = data.upload.filekey;
     offset += chunk.length;
+    if (onProgress) {
+      const progress = Math.floor(Math.min((offset / fileSize) * 100, 100));
+      onProgress(progress);
+    }
     Mwn.log(
       `[I] Chunk uploaded: offset=${offset}, filekey=${filekey}, progress=${(
         (offset / fileSize) *

@@ -6,7 +6,11 @@ import {
   createDescriptionPage,
   createFundPage,
 } from "../createPage";
-import { upsertCaseToDescriptionPage, upsertDescriptionToFundPage, upsertFundToArchivePage } from "../updatePage";
+import {
+  upsertCaseToDescriptionPage,
+  upsertDescriptionToFundPage,
+  upsertFundToArchivePage,
+} from "../updatePage";
 import { uploadFile } from "../uploadFile";
 
 /**
@@ -39,7 +43,7 @@ export const publishFileWithProgress = async (
   credentials?: WikiCredentials
 ) => {
   const progress = onProgress || (() => {});
-  
+
   try {
     progress(5, "Ініціалізація з'єднання з Вікісховищем...");
 
@@ -54,12 +58,7 @@ export const publishFileWithProgress = async (
 
     progress(10, "Файл успішно проаналізовано...");
 
-    const {
-      archive,
-      fund,
-      description,
-      caseName
-    } = parsed;
+    const { archive, fund, description, caseName } = parsed;
 
     // Initialize bots with credentials
     const sourcesOptions = {
@@ -82,24 +81,24 @@ export const publishFileWithProgress = async (
     // Create missing pages, if they do not exist
     const archivePage = `${PREFIX}${archive}`;
     const fundPage = `${archivePage}/${fund}`;
-    
+
     progress(25, "Створення сторінки фонду...");
     await createFundPage(sourcesBot, fundPage, parsed);
-    
+
     const descriptionPage = `${fundPage}/${description}`;
     progress(30, "Створення сторінки опису...");
     await createDescriptionPage(sourcesBot, descriptionPage, parsed);
-    
+
     const casePage = `${descriptionPage}/${caseName}`;
     progress(35, "Створення сторінки справи...");
     await createCasePage(sourcesBot, casePage, parsed);
 
     progress(40, "Оновлення навігаційних сторінок...");
     await upsertFundToArchivePage(sourcesBot, archivePage, parsed);
-    
+
     progress(45, "Оновлення сторінки фонду...");
     await upsertDescriptionToFundPage(sourcesBot, fundPage, parsed);
-    
+
     progress(50, "Оновлення сторінки опису...");
     await upsertCaseToDescriptionPage(sourcesBot, descriptionPage, parsed);
 
@@ -107,16 +106,23 @@ export const publishFileWithProgress = async (
 
     // Upload file with progress tracking
     // We'll modify uploadFile to accept credentials and progress
-    await uploadFileWithCredentials(filePath, parsed, commonsOptions, (fileProgress, message) => {
-      // Map file upload progress to 55-100% range
-      const totalProgress = 55 + (fileProgress * 0.45);
-      progress(totalProgress, message);
-    });
+    await uploadFileWithCredentials(
+      filePath,
+      parsed,
+      commonsOptions,
+      (fileProgress, message) => {
+        // Map file upload progress to 55-100% range
+        const totalProgress = 55 + fileProgress * 0.45;
+        progress(totalProgress, message);
+      }
+    );
 
     progress(100, "Публікацію завершено успішно!");
 
     // Generate the case page URL
-    const casePageUrl = `https://uk.wikisource.org/wiki/${encodeURIComponent(casePage)}`;
+    const casePageUrl = `https://uk.wikisource.org/wiki/${encodeURIComponent(
+      casePage
+    )}`;
 
     return {
       success: true,
@@ -125,9 +131,8 @@ export const publishFileWithProgress = async (
       descriptionPage,
       casePage,
       casePageUrl,
-      fileName
+      fileName,
     };
-
   } catch (error) {
     Mwn.log(`[E] Publish failed: ${error}`);
     throw error;
@@ -145,12 +150,12 @@ async function uploadFileWithCredentials(
   onProgress?: (progress: number, message: string) => void
 ) {
   const progress = onProgress || (() => {});
-  
+
   // We'll temporarily override the global commons options
   // This is a bit of a hack, but it reuses existing code
   const originalEnv = {
     username: process.env.WIKI_BOT_USERNAME,
-    password: process.env.WIKI_BOT_PASSWORD
+    password: process.env.WIKI_BOT_PASSWORD,
   };
 
   try {
@@ -158,13 +163,14 @@ async function uploadFileWithCredentials(
     process.env.WIKI_BOT_USERNAME = commonsOptions.username;
     process.env.WIKI_BOT_PASSWORD = commonsOptions.password;
 
-    progress(10, "Завантаження файлу...");
-    
     // Use the existing uploadFile function
-    await uploadFile(filePath, parsed);
-    
-    progress(100, "Файл успішно завантажено!");
+    await uploadFile(filePath, parsed, (fileProgress) => {
+      // Map file upload progress to 10-100% range
+      const totalProgress = fileProgress;
+      progress(totalProgress, `Завантаження: ${fileProgress}%`);
+    });
 
+    progress(100, "Файл успішно завантажено!");
   } finally {
     // Restore original environment
     if (originalEnv.username) {
@@ -172,7 +178,7 @@ async function uploadFileWithCredentials(
     } else {
       delete process.env.WIKI_BOT_USERNAME;
     }
-    
+
     if (originalEnv.password) {
       process.env.WIKI_BOT_PASSWORD = originalEnv.password;
     } else {
