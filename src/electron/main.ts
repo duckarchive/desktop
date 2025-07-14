@@ -175,7 +175,7 @@ class WikiManagerApp {
 
         return {
           success: true,
-          message: 'Файл успішно опубліковано до української Вікібібліотеки!',
+          message: 'Файл успішно опубліковано на Вікіджерелах!',
           pageUrl: publishResult.casePageUrl,
           parsed
         };

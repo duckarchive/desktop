@@ -39,6 +39,8 @@ const FilesList: React.FC<FilesListProps> = ({ files, onRemoveFile }) => {
     }
   };
 
+  const isInProgress = files.some(file => file.status === 'uploading' || file.status === 'pending');
+
   return (
     <div id="files-list" style={{ display: files.length > 0 ? 'block' : 'none' }}>
       <h3>Вибрані файли ({files.length})</h3>
@@ -69,7 +71,7 @@ const FilesList: React.FC<FilesListProps> = ({ files, onRemoveFile }) => {
               className="remove-file-btn" 
               onClick={() => onRemoveFile(file.id)}
               title="Видалити файл зі списку"
-              disabled={file.status === 'uploading'}
+              disabled={isInProgress}
             >
               ×
             </button>

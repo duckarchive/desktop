@@ -32,12 +32,12 @@ const Footer: React.FC<FooterProps> = ({ version, credentialsStatus, onOpenSetti
       </div>
       
       <div style={{ marginTop: '1rem', textAlign: 'center', fontSize: '0.8rem', color: '#999' }}>
-        <a href="https://github.com/your-username/wiki-manager" target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'none' }}>
+        <a href="https://github.com/duckarchive/wiki-manager" target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'none' }}>
           📂 Вихідний код
         </a>
         {' | '}
-        <a href="https://uk.wikisource.org/" target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'none' }}>
-          📚 Українська Вікібібліотека
+        <a href="https://uk.wikisource.org/wiki/%D0%90%D1%80%D1%85%D1%96%D0%B2:%D0%90%D1%80%D1%85%D1%96%D0%B2%D0%B8" target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'none' }}>
+          📚 Архіви на Вікіджерелах
         </a>
       </div>
     </footer>

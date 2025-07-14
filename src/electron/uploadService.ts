@@ -45,7 +45,7 @@ export const publishFileWithProgress = async (
   const progress = onProgress || (() => {});
 
   try {
-    progress(5, "Ініціалізація з'єднання з Вікісховищем...");
+    progress(5, "Ініціалізація з'єднання...");
 
     // Parse filename
     const fileName = path.basename(filePath);
@@ -73,7 +73,7 @@ export const publishFileWithProgress = async (
       password: credentials?.password,
     };
 
-    progress(15, "Підключення до української Вікібібліотеки...");
+    progress(15, "Підключення...");
     const sourcesBot = await Mwn.init(sourcesOptions);
 
     progress(20, "Створення структури сторінок...");
@@ -102,7 +102,7 @@ export const publishFileWithProgress = async (
     progress(50, "Оновлення сторінки опису...");
     await upsertCaseToDescriptionPage(sourcesBot, descriptionPage, parsed);
 
-    progress(55, "Початок завантаження файлу до Вікісховища...");
+    progress(55, "Початок завантаження файлу...");
 
     // Upload file with progress tracking
     // We'll modify uploadFile to accept credentials and progress
