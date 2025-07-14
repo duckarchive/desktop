@@ -10,7 +10,9 @@
     "types": ["node"],
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "lib": ["dom", "dom.iterable", "es6"]
   },
   "include": [
     "src/**/*"
