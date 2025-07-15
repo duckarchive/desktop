@@ -27,8 +27,7 @@
     "build": "tsc && vite build && electron-builder",
     "preview": "vite preview",
     "pretest": "vite build --mode=test",
-    "test": "vitest run",
-    "release": "electron-builder"
+    "test": "vitest run"
   },
   "dependencies": {
     "mwn": "^3.0.1"

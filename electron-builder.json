@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
-  "appId": "YourAppID",
+  "appId": "com.duckarchive.desktop",
   "asar": true,
   "directories": {
     "output": "release/${version}"
@@ -26,6 +26,8 @@
     "deleteAppDataOnUninstall": false
   },
   "publish": {
+    "releaseType": "release",
+    "vPrefixedTagName": true,
     "provider": "github",
     "channel": "latest"
   }
