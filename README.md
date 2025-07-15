@@ -1,7 +1,7 @@
 # Качиний Помічник (Duck Helper)
 
 <div align="center">
-  <img src="build/icon.png" alt="Качиний Помічник Logo" width="128" height="128">
+  <img width="100%" alt="робоче вікно програми" src="https://github.com/user-attachments/assets/c9a57cea-a6a8-4556-a8b4-cdc3c484b96b" />
   
   **Desktop app with helper functions for genealogy research and archival records management**
   

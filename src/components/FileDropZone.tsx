@@ -77,10 +77,11 @@ const FileDropZone: React.FC<FileDropZoneProps> = ({
   return (
     <button
       className={clsx(
-        `w-full bg-white border-3 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-300 hover:border-green-500 hover:bg-white`,
+        `w-full bg-white border-4 border-dashed rounded-xl p-12 text-center transition-all duration-300`,
         {
-          "border-gray-500": !isDragOver,
-          "border-green-500 bg-green-50": isDragOver,
+          "border-gray-500 hover:border-green-500 text-gray-800 hover:bg-white cursor-pointer": !isDragOver && !isDisabled,
+          "border-green-500 bg-green-50 text-gray-800": isDragOver,
+          "cursor-not-allowed text-gray-400": isDisabled,
         }
       )}
       onDragOver={handleDragOver}
@@ -90,12 +91,10 @@ const FileDropZone: React.FC<FileDropZoneProps> = ({
       disabled={isDisabled}
     >
       <div className="text-5xl mb-4 opacity-70">📂</div>
-      <p className="my-2 text-gray-600">
-        <strong className="text-gray-800 text-xl">
-          Перетягніть PDF файли сюди
-        </strong>
+      <p className="text-xl font-semibold">
+        Перетягніть PDF файли сюди
       </p>
-      <p className="my-2 text-gray-600">або натисніть для вибору</p>
+      <p>або натисніть для вибору</p>
     </button>
   );
 };

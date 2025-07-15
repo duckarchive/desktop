@@ -97,14 +97,15 @@ const FileListItem: React.FC<FileListItemProps> = ({
       </div>
       <button
         className={clsx(
-          "flex-shrink-0 w-6 h-6 rounded-full text-md font-bold border-0",
+          "flex-shrink-0 w-6 h-6 rounded-full text-white text-md font-bold border-0",
           {
             "bg-gray-300 cursor-not-allowed opacity-60": isInProgress,
-            "bg-red-500 text-white cursor-pointer": !isInProgress,
+            "bg-red-500 cursor-pointer": !isInProgress,
           }
         )}
         onClick={() => onRemoveFile(file.id)}
         aria-label="Close"
+        disabled={isInProgress}
       >
         ×
       </button>

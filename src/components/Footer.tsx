@@ -1,13 +1,26 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import Button from "./Button";
+import { useToastHelpers } from "@/providers/ToastProvider";
 
-interface FooterProps {
-  version: string;
-}
+interface FooterProps {}
 
-const Footer: React.FC<FooterProps> = ({
-  version,
-}) => {
+const Footer: React.FC<FooterProps> = () => {
+  const { showError } = useToastHelpers();
+  const [version, setVersion] = useState("Завантаження...");
+
+  useEffect(() => {
+    if (!window.electronAPI) {
+      showError("Electron API недоступне");
+      return;
+    }
+    window.electronAPI.getVersion().then((ver) => {
+      setVersion(ver);
+    }).catch((error) => {
+      console.error("Failed to load version:", error);
+      setVersion("Невідома");
+    });
+  }, []);
+
   return (
     <footer className="mt-4 text-center text-xs text-gray-400">
       <a

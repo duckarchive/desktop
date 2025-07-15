@@ -25,6 +25,7 @@ const FilesList: React.FC<FilesListProps> = ({ files, onRemoveFile, onClearAllFi
               size="small"
               variant="secondary"
               onClick={onClearAllFiles}
+              disabled={isInProgress}
             >
               Очистити список
             </Button>

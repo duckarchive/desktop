@@ -25,7 +25,6 @@ const App: React.FC = () => {
   const [showProgress, setShowProgress] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [appVersion, setAppVersion] = useState("Завантаження...");
   const [username, setUsername] = useState<WikiCredentials['username'] | null>(null);
 
   // Load app version and credentials status
@@ -43,10 +42,8 @@ const App: React.FC = () => {
   const loadAppVersion = async () => {
     try {
       if (window.electronAPI) {
-        const version = await window.electronAPI.getVersion();
         const status = await window.electronAPI.getCredentialsStatus();
 
-        setAppVersion(version);
         setUsername(status.username);
 
         // Show warning if credentials are missing
@@ -58,7 +55,6 @@ const App: React.FC = () => {
       }
     } catch (error) {
       console.error("Failed to load version:", error);
-      setAppVersion("Невідома");
     }
   };
 
@@ -122,7 +118,6 @@ const App: React.FC = () => {
     try {
       setIsUploading(true);
       setShowProgress(true);
-      // hideMessage();
 
       if (!window.electronAPI) {
         throw new Error("Electron API недоступне");
@@ -202,6 +197,7 @@ const App: React.FC = () => {
       });
       setUploadResults(results);
       setShowResults(true);
+      setShowProgress(false);
 
       if (errorCount === 0) {
         showSuccess(`Всі файли (${successCount}) успішно опубліковано!`);
@@ -242,14 +238,9 @@ const App: React.FC = () => {
             </span>
           )}
         </div>
-        {/* <ul className="text-gray-300 list-outside">
-          <li>Автоматичне створення/оновлення сторінок</li>
-          <li>Публікація PDF-файлів</li>
-          <li>Підтримка мультифайлового завантаження</li>
-        </ul> */}
       </header>
 
-      <FileDropZone onFilesSelected={handleAddFiles} />
+      <FileDropZone onFilesSelected={handleAddFiles} isDisabled={isUploading} />
 
       {invalidFileNames.length > 0 && (
         <InvalidNames
@@ -270,18 +261,18 @@ const App: React.FC = () => {
         message={progress.message}
       />
 
-      <UploadResults show={showResults} results={uploadResults} />
+      <UploadResults show={showResults} results={uploadResults} onClose={handleClearFilesClick} />
 
-      {selectedFiles.length > 0 && (
+      {selectedFiles.length > 0 && !isUploading && (
         <Button
-          disabled={!hasPendingFiles || isUploading}
+          disabled={!hasPendingFiles}
           onClick={uploadFiles}
         >
           Почати публікацію
         </Button>
       )}
 
-      <Footer version={appVersion} />
+      <Footer />
 
       <SettingsModal
         show={showSettings}

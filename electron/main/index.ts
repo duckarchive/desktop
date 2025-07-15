@@ -324,7 +324,7 @@ ipcMain.handle("app:getCredentialsStatus", () => {
 
   return {
     hasCredentials,
-    username: hasCredentials ? credentials.username : "Not configured",
+    username: credentials.username,
     storagePath: storageInfo.path,
     encrypted: storageInfo.encrypted,
     lastUpdated: storageInfo.timestamp
