@@ -6,10 +6,14 @@ import UploadResults from "@/components/UploadResults";
 import SettingsModal from "@/components/SettingsModal";
 import Footer from "@/components/Footer";
 import { useToastHelpers } from "@/providers/ToastProvider";
+import { parseFileName } from "@/helpers/parse";
+import { uniqBy } from "lodash";
+import InvalidNames from "@/components/InvalidNames";
 
 const App: React.FC = () => {
   const { showError, showSuccess, showWarning } = useToastHelpers();
   const [selectedFiles, setSelectedFiles] = useState<FileItem[]>([]);
+  const [invalidFileNames, setInvalidFileNames] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResults, setUploadResults] = useState<UploadResult[]>([]);
   const [progress, setProgress] = useState({
@@ -56,113 +60,40 @@ const App: React.FC = () => {
     }
   };
 
-  const validateFileName = async (fileName: string) => {
-    try {
-      if (!window.electronAPI) {
-        return {
-          isValid: false,
-          error: "Electron API недоступне",
-        };
-      }
-
-      const result = await window.electronAPI.validateFileName(fileName);
-      return result;
-    } catch (error) {
-      console.error("Filename validation failed:", error);
-      return {
-        isValid: false,
-        error: "Помилка валідації: " + (error as Error).message,
-      };
-    }
-  };
-
-  const addFiles = async (
-    fileDataList: Array<{
-      fileName: string;
-      fileSize: number;
-      filePath: string;
-    }>
-  ) => {
+  const handleAddFiles = (fileDataList: RawFileItem[]) => {
     const validFiles: FileItem[] = [];
-    const invalidFiles: Array<{ fileName: string; error: string }> = [];
+    const invalidFileNames: string[] = [];
 
-    // Validate each file
     for (const fileData of fileDataList) {
-      const exists = selectedFiles.some(
-        (f: FileItem) =>
-          f.fileName === fileData.fileName && f.fileSize === fileData.fileSize
-      );
-      if (exists) {
-        continue; // Skip duplicates
-      }
-
-      // Validate filename format
-      const validation = await validateFileName(fileData.fileName);
-      if (validation.isValid) {
+      const parsedFileName = parseFileName(fileData.fileName);
+      if (parsedFileName) {
         validFiles.push({
           ...fileData,
-          id: Date.now() + Math.random().toString(), // Unique ID for each file
+          id: Date.now() + Math.random().toString(),
           status: "pending",
-          parsed: validation.parsed,
+          parsed: parsedFileName,
         });
       } else {
-        invalidFiles.push({
-          fileName: fileData.fileName,
-          error: validation.error || "Невідома помилка",
-        });
+        invalidFileNames.push(fileData.fileName);
       }
     }
 
-    // Add valid files to selection
-    setSelectedFiles((prev: FileItem[]) => [...prev, ...validFiles]);
+    setSelectedFiles((prev: FileItem[]) =>
+      uniqBy([...prev, ...validFiles], "fileName")
+    );
 
     // Show validation results
-    if (invalidFiles.length > 0) {
-      showFileValidationErrors(invalidFiles, validFiles.length);
-    } else if (validFiles.length > 0) {
+    if (invalidFileNames.length > 0) {
+      setInvalidFileNames(invalidFileNames);
+      showError(`Пропущено ${invalidFileNames.length} файл(ів)`);
+    }
+    if (validFiles.length > 0) {
       showSuccess(`Додано ${validFiles.length} файл(ів) до списку`);
     }
-
-    // if (validFiles.length > 0 || invalidFiles.length === 0) {
-    //   setTimeout(hideMessage, 3000);
-    // }
   };
 
-  const showFileValidationErrors = (
-    invalidFiles: Array<{ fileName: string; error: string }>,
-    validCount: number
-  ) => {
-    const errorList = invalidFiles
-      .map((f) => `• ${f.fileName}: ${f.error}`)
-      .join("<br>");
-
-    const formatExample = "ЦДАВО Р-1-2-3. 1920-1930. Назва документу.pdf";
-    const formatDescription = `
-        <div style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 6px; text-align: left;">
-            <strong>Очікуваний формат назви файлу:</strong><br>
-            <code style="background: #e9ecef; padding: 0.2rem 0.4rem; border-radius: 3px;">${formatExample}</code><br><br>
-            <strong>Структура:</strong><br>
-            • <strong>АРХІВ</strong> - код архіву (наприклад: ЦДАВО, ДАЛО, ЦДІАК)<br>
-            • <strong>Фонд</strong> - номер або код фонду (наприклад: Р-1, 123, А-45)<br>
-            • <strong>Опис-Справа</strong> - через дефіс (наприклад: 2-3, 15-248)<br>
-            • <strong>Роки</strong> - рік або діапазон років (наприклад: 1920, 1920-1930)<br>
-            • <strong>Назва</strong> - описова назва документу<br><br>
-            <strong>Приклади правильних назв:</strong><br>
-            • ЦДАВО Р-1-2-3. 1920. Протокол засідання.pdf<br>
-            • ДАЛО 123-4-56. 1925-1930. Листування.pdf<br>
-            • ЦДІАК А-789-10-11. 1918. Акт передачі.pdf
-        </div>
-    `;
-
-    let messageText = `<strong>Помилки у назвах файлів (${invalidFiles.length}):</strong><br>${errorList}`;
-
-    if (validCount > 0) {
-      messageText = `<strong>Додано ${validCount} файл(ів). Помилки у ${invalidFiles.length} файлах:</strong><br>${errorList}`;
-    }
-
-    messageText += formatDescription;
-
-    showError(messageText);
+  const clearInvalidNames = () => {
+    setInvalidFileNames([]);
   };
 
   const removeFile = (fileId: string) => {
@@ -171,13 +102,13 @@ const App: React.FC = () => {
     );
   };
 
-  const clearFiles = () => {
+  const handleClearFilesClick = () => {
     if (isUploading) return;
 
+    setInvalidFileNames([]);
     setSelectedFiles([]);
     setUploadResults([]);
     setShowResults(false);
-    // hideMessage();
   };
 
   const uploadFiles = async () => {
@@ -275,7 +206,9 @@ const App: React.FC = () => {
       } else if (successCount === 0) {
         showError(`Жоден файл не вдалося опублікувати (${errorCount} помилок)`);
       } else {
-        showWarning(`${successCount} файлів опубліковано, ${errorCount} з помилками`);
+        showWarning(
+          `${successCount} файлів опубліковано, ${errorCount} з помилками`
+        );
       }
     } catch (error) {
       console.error("Upload process failed:", error);
@@ -291,8 +224,8 @@ const App: React.FC = () => {
   );
 
   return (
-    <main className="max-w-xl mx-auto">
-      <header className="mb-4">
+    <main className="max-w-xl mx-auto flex flex-col gap-4 py-6">
+      <header>
         <h1 className="text-xl">Менеджер Вікіджерел</h1>
         <ul className="text-gray-300 list-outside">
           <li>Автоматичне створення/оновлення сторінок</li>
@@ -301,7 +234,11 @@ const App: React.FC = () => {
         </ul>
       </header>
 
-      <FileDropZone onFilesSelected={addFiles} />
+      <FileDropZone onFilesSelected={handleAddFiles} />
+
+      {invalidFileNames.length > 0 && (
+        <InvalidNames invalidFileNames={invalidFileNames} onClose={clearInvalidNames} />
+      )}
 
       <FilesList files={selectedFiles} onRemoveFile={removeFile} />
 
@@ -326,7 +263,7 @@ const App: React.FC = () => {
           style={{
             display: selectedFiles.length > 0 ? "inline-block" : "none",
           }}
-          onClick={clearFiles}
+          onClick={handleClearFilesClick}
         >
           Очистити список
         </button>
