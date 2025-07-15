@@ -287,12 +287,12 @@ const App: React.FC = () => {
   const hasPendingFiles = selectedFiles.some((f: FileItem) => f.status === 'pending');
 
   return (
-    <div className="container">
-      <header className="header">
-        <span className="icon">📚</span>
+    <div>
+      <header className="flex items-center justify-center">
+        <span className="text-8xl">📚</span>
         <div>
           <h1>Менеджер Вікіджерел</h1>
-          <ul className="subtitle">
+          <ul className="text-gray-300 list-outside">
             <li>Автоматичне створення/оновлення сторінок</li> 
             <li>Публікація PDF-файлів</li>
             <li>Підтримка мультифайлового завантаження</li>
