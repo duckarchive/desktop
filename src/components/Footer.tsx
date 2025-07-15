@@ -1,47 +1,41 @@
-
-import React from 'react';
-import Button from './Button';
+import React from "react";
+import Button from "./Button";
 
 interface FooterProps {
   version: string;
-  credentialsStatus: any;
-  onOpenSettings: () => void;
 }
 
-const Footer: React.FC<FooterProps> = ({ version, credentialsStatus, onOpenSettings }) => {
+const Footer: React.FC<FooterProps> = ({
+  version,
+}) => {
   return (
-    <footer>
-      <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <Button 
-            variant="secondary" 
-            onClick={onOpenSettings}
-          >
-            ⚙️ Налаштування
-          </Button>
-        </div>
-        
-        <div style={{ textAlign: 'right', fontSize: '0.9rem', color: '#666' }}>
-          <div>Версія: {version}</div>
-          <div style={{ marginTop: '0.2rem' }}>
-            {credentialsStatus?.hasCredentials ? (
-              <span style={{ color: '#28a745' }}>✅ Облікові дані налаштовано</span>
-            ) : (
-              <span style={{ color: '#dc3545' }}>❌ Облікові дані відсутні</span>
-            )}
-          </div>
-        </div>
-      </div>
-      
-      <div style={{ marginTop: '1rem', textAlign: 'center', fontSize: '0.8rem', color: '#999' }}>
-        <a href="https://github.com/duckarchive/wiki-manager" target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'none' }}>
-          📂 Вихідний код
-        </a>
-        {' | '}
-        <a href="https://uk.wikisource.org/wiki/%D0%90%D1%80%D1%85%D1%96%D0%B2:%D0%90%D1%80%D1%85%D1%96%D0%B2%D0%B8" target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'none' }}>
-          📚 Архіви на Вікіджерелах
-        </a>
-      </div>
+    <footer className="mt-4 text-center text-xs text-gray-400">
+      <a
+        href={`https://github.com/duckarchive/desktop/releases/v${version}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-gray-500 hover:underline"
+      >
+        Версія: {version}
+      </a>
+      <span className="mx-2">|</span>
+      <a
+        href="https://github.com/duckarchive/desktop"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-gray-500 hover:underline"
+      >
+        📂 Вихідний код
+      </a>
+      <span className="mx-2">|</span>
+      <a
+        href="https://uk.wikisource.org/wiki/%D0%90%D1%80%D1%85%D1%96%D0%B2:%D0%90%D1%80%D1%85%D1%96%D0%B2%D0%B8"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-gray-500 hover:underline"
+      >
+        📚 Архіви на Вікіджерелах
+      </a>
     </footer>
   );
 };

@@ -10,6 +10,7 @@ import { useToastHelpers } from "@/providers/ToastProvider";
 import { parseFileName } from "@/helpers/parse";
 import { uniqBy } from "lodash";
 import InvalidNames from "@/components/InvalidNames";
+import { WikiCredentials } from "~/main/uploadService";
 
 const App: React.FC = () => {
   const { showError, showSuccess, showWarning } = useToastHelpers();
@@ -25,7 +26,7 @@ const App: React.FC = () => {
   const [showResults, setShowResults] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [appVersion, setAppVersion] = useState("Завантаження...");
-  const [credentialsStatus, setCredentialsStatus] = useState<any>(null);
+  const [username, setUsername] = useState<WikiCredentials['username'] | null>(null);
 
   // Load app version and credentials status
   useEffect(() => {
@@ -46,12 +47,12 @@ const App: React.FC = () => {
         const status = await window.electronAPI.getCredentialsStatus();
 
         setAppVersion(version);
-        setCredentialsStatus(status);
+        setUsername(status.username);
 
         // Show warning if credentials are missing
         if (!status.hasCredentials) {
           showError(
-            "Облікові дані відсутні! Будь ласка, налаштуйте свої облікові дані Вікімедіа-бота за допомогою кнопки Налаштування."
+            "Облікові дані відсутні! Будь ласка, налаштуйте Вікімедіа-бота"
           );
         }
       }
@@ -228,11 +229,24 @@ const App: React.FC = () => {
     <main className="max-w-xl mx-auto flex flex-col gap-4 py-6">
       <header>
         <h1 className="text-xl">Менеджер Вікіджерел</h1>
-        <ul className="text-gray-300 list-outside">
+        <div
+          className="text-sm cursor-pointer"
+          onClick={() => setShowSettings(true)}
+          aria-label="Open settings modal"
+        >
+          {username ? (
+            <span className="text-green-600">✅&nbsp;{username}</span>
+          ) : (
+            <span className="text-red-600">
+              ❌ Облікові дані відсутні. Натисніть, щоб налаштувати.
+            </span>
+          )}
+        </div>
+        {/* <ul className="text-gray-300 list-outside">
           <li>Автоматичне створення/оновлення сторінок</li>
           <li>Публікація PDF-файлів</li>
           <li>Підтримка мультифайлового завантаження</li>
-        </ul>
+        </ul> */}
       </header>
 
       <FileDropZone onFilesSelected={handleAddFiles} />
@@ -244,7 +258,11 @@ const App: React.FC = () => {
         />
       )}
 
-      <FilesList files={selectedFiles} onRemoveFile={removeFile} onClearAllFiles={handleClearFilesClick} />
+      <FilesList
+        files={selectedFiles}
+        onRemoveFile={removeFile}
+        onClearAllFiles={handleClearFilesClick}
+      />
 
       <ProgressContainer
         show={showProgress}
@@ -263,11 +281,7 @@ const App: React.FC = () => {
         </Button>
       )}
 
-      <Footer
-        version={appVersion}
-        credentialsStatus={credentialsStatus}
-        onOpenSettings={() => setShowSettings(true)}
-      />
+      <Footer version={appVersion} />
 
       <SettingsModal
         show={showSettings}

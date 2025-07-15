@@ -139,29 +139,29 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   }
 
   return (
-    <div id="settings-modal" className="modal">
-      <div className="modal-content">
-        <span className="close" onClick={onClose}>&times;</span>
-        <h2>Налаштування облікових даних</h2>
+    <div id="settings-modal" className="fixed inset-0 z-50 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-black rounded-xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto relative shadow-2xl animate-in slide-in-from-bottom-12 fade-in-0 duration-300">
+        <span className="absolute top-4 right-4 text-2xl font-bold cursor-pointer text-gray-400 hover:text-gray-200 transition-colors p-1 leading-none" onClick={onClose}>&times;</span>
+        <h2 className="text-2xl font-semibold text-gray-200 mb-4 pr-8">Налаштування облікових даних</h2>
         
-        <p>
+        <p className="text-gray-400 leading-relaxed mb-4">
           Для завантаження файлів до Вікібібліотеки потрібно створити бота та отримати облікові дані.
           <br/>
-          <a href="https://www.mediawiki.org/wiki/Special:BotPasswords" target="_blank" rel="noopener noreferrer">
+          <a href="https://www.mediawiki.org/wiki/Special:BotPasswords" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
             🔗 Створити бота
           </a>
         </p>
 
         {credentialsStatus?.hasCredentials && (
-          <div style={{ marginBottom: '1rem', padding: '1rem', background: '#d4edda', border: '1px solid #c3e6cb', borderRadius: '5px' }}>
-            <strong>✅ Облікові дані збережено</strong><br/>
-            Користувач: {credentialsStatus.username}
+          <div className="mb-4 p-4 bg-green-100 border border-green-300 rounded-lg">
+            <strong className="text-green-800">✅ Облікові дані збережено</strong><br/>
+            <span className="text-green-700">Користувач: {credentialsStatus.username}</span>
           </div>
         )}
 
         <form onSubmit={handleSave}>
-          <div className="form-group">
-            <label htmlFor="username">Ім'я бота:</label>
+          <div className="mb-4">
+            <label htmlFor="username" className="block mb-2 font-medium text-gray-200">Ім'я бота:</label>
             <input
               type="text"
               id="username"
@@ -169,11 +169,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Ім'я бота (не ваш основний акаунт!)"
               disabled={isLoading}
+              className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-md text-base transition-all focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Пароль бота:</label>
+          <div className="mb-4">
+            <label htmlFor="password" className="block mb-2 font-medium text-gray-200">Пароль бота:</label>
             <input
               type="password"
               id="password"
@@ -181,10 +182,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Пароль бота (не ваш основний пароль!)"
               disabled={isLoading}
+              className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-md text-base transition-all focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
             />
           </div>
 
-          <div className="form-actions">
+          <div className="flex gap-2 mt-8 flex-wrap">
             <Button 
               type="submit" 
               disabled={isLoading}
