@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import os from 'node:os'
 import * as fs from 'fs'
-import { update } from './update'
 import { publishFileWithProgress } from './uploadService'
 import { parseFileName } from './parse'
 import { CredentialsManager } from './credentialsManager'
@@ -117,9 +116,6 @@ async function createWindow() {
       shell.openExternal(navigationUrl)
     }
   })
-
-  // Auto update
-  update(win)
 }
 
 app.whenReady().then(createWindow)
