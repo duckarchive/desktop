@@ -1,8 +1,11 @@
-interface FileItem {
-  id: string;
+interface RawFileItem {
   fileName: string;
   fileSize: number;
   filePath: string;
+}
+
+interface FileItem extends RawFileItem {
+  id: string;
   status: 'pending' | 'uploading' | 'success' | 'error';
   parsed?: any;
   pageUrl?: string;

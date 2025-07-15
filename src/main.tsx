@@ -4,10 +4,13 @@ import App from '@/App'
 
 import '@/normalize.css'
 import '@/index.css'
+import { ToastProvider } from '@/providers/ToastProvider'
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <App />
+    <ToastProvider>
+      <App />
+    </ToastProvider>
   </React.StrictMode>,
 )
 
