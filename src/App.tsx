@@ -5,6 +5,7 @@ import ProgressContainer from "@/components/ProgressContainer";
 import UploadResults from "@/components/UploadResults";
 import SettingsModal from "@/components/SettingsModal";
 import Footer from "@/components/Footer";
+import Button from "@/components/Button";
 import { useToastHelpers } from "@/providers/ToastProvider";
 import { parseFileName } from "@/helpers/parse";
 import { uniqBy } from "lodash";
@@ -237,10 +238,13 @@ const App: React.FC = () => {
       <FileDropZone onFilesSelected={handleAddFiles} />
 
       {invalidFileNames.length > 0 && (
-        <InvalidNames invalidFileNames={invalidFileNames} onClose={clearInvalidNames} />
+        <InvalidNames
+          invalidFileNames={invalidFileNames}
+          onClose={clearInvalidNames}
+        />
       )}
 
-      <FilesList files={selectedFiles} onRemoveFile={removeFile} />
+      <FilesList files={selectedFiles} onRemoveFile={removeFile} onClearAllFiles={handleClearFilesClick} />
 
       <ProgressContainer
         show={showProgress}
@@ -250,24 +254,14 @@ const App: React.FC = () => {
 
       <UploadResults show={showResults} results={uploadResults} />
 
-      <div style={{ marginTop: "2rem" }}>
-        <button
-          className="btn"
+      {selectedFiles.length > 0 && (
+        <Button
           disabled={!hasPendingFiles || isUploading}
           onClick={uploadFiles}
         >
           Почати публікацію
-        </button>
-        <button
-          className="btn secondary"
-          style={{
-            display: selectedFiles.length > 0 ? "inline-block" : "none",
-          }}
-          onClick={handleClearFilesClick}
-        >
-          Очистити список
-        </button>
-      </div>
+        </Button>
+      )}
 
       <Footer
         version={appVersion}

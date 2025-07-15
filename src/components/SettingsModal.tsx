@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Button from './Button';
 
 interface SettingsModalProps {
   show: boolean;
@@ -184,33 +185,33 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
 
           <div className="form-actions">
-            <button 
+            <Button 
               type="submit" 
-              className="btn"
               disabled={isLoading}
+              loading={isLoading}
             >
-              {isLoading ? 'Збереження...' : 'Зберегти'}
-            </button>
+              Зберегти
+            </Button>
             
             {credentialsStatus?.hasCredentials && (
-              <button 
+              <Button 
                 type="button" 
-                className="btn secondary"
+                variant="secondary"
                 onClick={handleRemove}
                 disabled={isLoading}
               >
                 Видалити облікові дані
-              </button>
+              </Button>
             )}
             
-            <button 
+            <Button 
               type="button" 
-              className="btn secondary"
+              variant="secondary"
               onClick={onClose}
               disabled={isLoading}
             >
               Скасувати
-            </button>
+            </Button>
           </div>
         </form>
       </div>

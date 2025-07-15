@@ -79,7 +79,7 @@ const FileDropZone: React.FC<FileDropZoneProps> = ({
       className={clsx(
         `w-full bg-white border-3 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-300 hover:border-green-500 hover:bg-white`,
         {
-          "border-transparent": !isDragOver,
+          "border-gray-500": !isDragOver,
           "border-green-500 bg-green-50": isDragOver,
         }
       )}

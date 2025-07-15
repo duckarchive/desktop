@@ -1,6 +1,7 @@
 import React from "react";
 import clsx from "clsx";
 import { truncate } from "lodash";
+import Button from "./Button";
 
 interface FileListItemProps {
   file: FileItem;
@@ -52,7 +53,7 @@ const FileListItem: React.FC<FileListItemProps> = ({
   };
 
   return (
-    <div className="flex justify-between gap-1 items-center p-4 border border-gray-200 rounded-lg mb-1 bg-white">
+    <div className="flex justify-between gap-1 items-center p-4 border border-gray-200 rounded-lg bg-white">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 font-medium mb-2 text-gray-800">
           <span className="text-lg min-w-5">{getStatusIcon(file.status)}</span>
@@ -96,15 +97,14 @@ const FileListItem: React.FC<FileListItemProps> = ({
       </div>
       <button
         className={clsx(
-          "flex-shrink-0 w-6 h-6 rounded-full text-md font-bold cursor-pointer border-none",
+          "flex-shrink-0 w-6 h-6 rounded-full text-md font-bold border-0",
           {
             "bg-gray-300 cursor-not-allowed opacity-60": isInProgress,
-            "bg-red-500 text-white": !isInProgress,
+            "bg-red-500 text-white cursor-pointer": !isInProgress,
           }
         )}
         onClick={() => onRemoveFile(file.id)}
-        title="Видалити файл зі списку"
-        disabled={isInProgress}
+        aria-label="Close"
       >
         ×
       </button>

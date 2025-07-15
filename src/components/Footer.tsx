@@ -1,4 +1,7 @@
 
+import React from 'react';
+import Button from './Button';
+
 interface FooterProps {
   version: string;
   credentialsStatus: any;
@@ -10,12 +13,12 @@ const Footer: React.FC<FooterProps> = ({ version, credentialsStatus, onOpenSetti
     <footer>
       <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <button 
-            className="btn secondary" 
+          <Button 
+            variant="secondary" 
             onClick={onOpenSettings}
           >
             ⚙️ Налаштування
-          </button>
+          </Button>
         </div>
         
         <div style={{ textAlign: 'right', fontSize: '0.9rem', color: '#666' }}>

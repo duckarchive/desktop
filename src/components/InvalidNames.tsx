@@ -1,3 +1,5 @@
+import React from 'react';
+
 interface InvalidNamesProps {
   invalidFileNames: string[];
   onClose?: () => void;
@@ -43,14 +45,15 @@ const InvalidNames: React.FC<InvalidNamesProps> = ({ invalidFileNames, onClose }
       </div>
     </details>
     <button
-      className="absolute top-1 right-1 z-50 bg-transparent cursor-pointer border-none text-gray-600"
+      className="absolute top-1 right-1 z-50 bg-transparent cursor-pointer border-none text-gray-600 hover:text-gray-800 w-6 h-6 flex items-center justify-center rounded"
       onClick={() => {
         if (typeof onClose === "function") {
           onClose();
         }
       }}
+      aria-label="Close"
     >
-      x
+      ×
     </button>
   </div>
 );
