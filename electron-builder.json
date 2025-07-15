@@ -34,8 +34,7 @@
     "deleteAppDataOnUninstall": false
   },
   "publish": {
-    "provider": "generic",
-    "channel": "latest",
-    "url": "https://github.com/duckarchive/desktop/releases/tag/v${version}/"
+    "provider": "github",
+    "channel": "latest"
   }
 }
