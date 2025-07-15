@@ -7,11 +7,11 @@
   },
   "files": ["dist-electron", "dist"],
   "mac": {
-    "artifactName": "${name}_${version}.${ext}",
+    "artifactName": "macos_${version}.${ext}",
     "target": ["dmg", "zip"]
   },
   "win": {
-    "artifactName": "${name}_${version}.${ext}",
+    "artifactName": "windows_${version}.${ext}",
     "target": [
       {
         "target": "nsis",
