@@ -4,13 +4,13 @@ import FilesList from "@/components/FilesList";
 import ProgressContainer from "@/components/ProgressContainer";
 import UploadResults from "@/components/UploadResults";
 import SettingsModal from "@/components/SettingsModal";
-import Button from "@/components/Button";
 import { useToastHelpers } from "@/providers/ToastProvider";
 import { parseFileName } from "@/helpers/parse";
 import { uniqBy } from "lodash";
 import InvalidNames from "@/components/InvalidNames";
 import { useElectronApi } from "@/providers/ElectronApiProvider";
 import { WikiCredentials } from "~/main/uploadService";
+import { Button } from "@heroui/button";
 
 const WikisourcesManager: React.FC = () => {
   const { showError, showSuccess, showWarning } = useToastHelpers();
@@ -25,23 +25,30 @@ const WikisourcesManager: React.FC = () => {
   });
   const [showProgress, setShowProgress] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [username, setUsername] = useState<WikiCredentials['username']>();
+  const [username, setUsername] = useState<WikiCredentials["username"]>();
 
   // Load app version and credentials status
   useEffect(() => {
-    electronAPI.getCredentials().then((status) => {
-      if (!status.success || !status.credentials) {
-        showError("Облікові дані відсутні! Будь ласка, налаштуйте Вікімедіа-бота");
-      }
-      setUsername(status.credentials?.username);
-    }).catch((error) => {
-      console.error("Failed to load credentials:", error);
-      showError("Помилка завантаження облікових даних: " + (error as Error).message);
-    });
+    electronAPI
+      .getCredentials()
+      .then((status) => {
+        if (!status.success || !status.credentials) {
+          showError(
+            "Облікові дані відсутні! Будь ласка, налаштуйте Вікімедіа-бота"
+          );
+        }
+        setUsername(status.credentials?.username);
+      })
+      .catch((error) => {
+        console.error("Failed to load credentials:", error);
+        showError(
+          "Помилка завантаження облікових даних: " + (error as Error).message
+        );
+      });
 
     electronAPI.onUploadProgress((data) => {
       setProgress({ value: data.progress, message: data.message });
-    })
+    });
   }, []);
 
   const handleAddFiles = (fileDataList: RawFileItem[]) => {
@@ -199,10 +206,6 @@ const WikisourcesManager: React.FC = () => {
     }
   };
 
-  const hasPendingFiles = selectedFiles.some(
-    (f: FileItem) => f.status === "pending"
-  );
-
   return (
     <div className="flex flex-col gap-4">
       <header className="">
@@ -210,7 +213,11 @@ const WikisourcesManager: React.FC = () => {
         <SettingsModal username={username} onSave={setUsername} />
       </header>
 
-      <FileDropZone mode="pdf" onFilesSelected={handleAddFiles} isDisabled={!username || isUploading} />
+      <FileDropZone
+        mode="pdf"
+        onFilesSelected={handleAddFiles}
+        isDisabled={!username || isUploading}
+      />
 
       {invalidFileNames.length > 0 && (
         <InvalidNames
@@ -231,15 +238,16 @@ const WikisourcesManager: React.FC = () => {
         message={progress.message}
       />
 
-      <UploadResults
-        show={showResults}
-        results={uploadResults}
-        onClose={handleClearFilesClick}
-      />
+      <UploadResults show={showResults} results={uploadResults} />
 
       {selectedFiles.length > 0 && !isUploading && (
-        <Button disabled={!hasPendingFiles} onClick={uploadFiles}>
-          Почати публікацію
+        <Button
+          size="lg"
+          color="primary"
+          variant={showResults ? "bordered" : "solid"}
+          onPress={showResults ? handleClearFilesClick : uploadFiles}
+        >
+          {showResults ? "Почати заново" : "Почати публікацію"}
         </Button>
       )}
     </div>

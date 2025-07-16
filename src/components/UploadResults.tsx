@@ -1,18 +1,15 @@
-import Button from "@/components/Button";
-
 interface UploadResultsProps {
   show: boolean;
   results: UploadResult[];
-  onClose: () => void;
 }
 
-const UploadResults: React.FC<UploadResultsProps> = ({ show, results, onClose }) => {
+const UploadResults: React.FC<UploadResultsProps> = ({ show, results }) => {
   if (!show || results.length === 0) {
     return null;
   }
 
   return (
-    <div className="bg-white bg-opacity-95 rounded-xl p-4 my-8 backdrop-blur-md shadow-lg">
+    <div className="bg-white bg-opacity-95 rounded-xl p-4 backdrop-blur-md shadow-lg">
       <h3 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b-2 border-gray-100">Результати публікації</h3>
       <div className="max-h-80 overflow-y-auto">
         {results.map((result, index) => (
@@ -35,14 +32,6 @@ const UploadResults: React.FC<UploadResultsProps> = ({ show, results, onClose })
           </div>
         ))}
       </div>
-      <Button
-        variant="primary"
-        size="small"
-        className="mt-4"
-        onClick={onClose}
-      >
-        Завантажити ще файли
-      </Button>
     </div>
   );
 };

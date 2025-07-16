@@ -1,7 +1,8 @@
 import React from "react";
 import clsx from "clsx";
 import { truncate } from "lodash";
-import Button from "./Button";
+import { Button } from "@heroui/button";
+import { Chip } from "@heroui/chip";
 
 interface FileListItemProps {
   file: FileItem;
@@ -22,21 +23,6 @@ const FileListItem: React.FC<FileListItemProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "⏳";
-      case "uploading":
-        return "🔄";
-      case "success":
-        return "✅";
-      case "error":
-        return "❌";
-      default:
-        return "⏳";
-    }
-  };
-
   const getStatusText = (status: string) => {
     switch (status) {
       case "pending":
@@ -52,11 +38,25 @@ const FileListItem: React.FC<FileListItemProps> = ({
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "default";
+      case "uploading":
+        return "primary";
+      case "success":
+        return "success";
+      case "error":
+        return "danger";
+      default:
+        return "default";
+    }
+  };
+
   return (
-    <div className="flex justify-between gap-1 items-center p-4 border border-gray-200 rounded-lg bg-white">
+    <div className="flex justify-between gap-1 items-center p-2 border border-gray-200 rounded-md bg-white">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 font-medium mb-2 text-gray-800">
-          <span className="text-lg min-w-5">{getStatusIcon(file.status)}</span>
           <span
             className="overflow-hidden text-ellipsis whitespace-nowrap"
             title={file.fileName}
@@ -65,12 +65,14 @@ const FileListItem: React.FC<FileListItemProps> = ({
           </span>
         </div>
         <div className="flex gap-2 items-center flex-wrap text-sm text-gray-600">
-          <span className="bg-gray-100 px-2 py-1 rounded font-mono">
+          <Chip>
             {formatFileSize(file.fileSize)}
-          </span>
-          <span className="px-2 py-1 rounded font-medium bg-gray-200 text-gray-700">
+          </Chip>
+          <Chip
+            color={getStatusColor(file.status)}
+          >
             {getStatusText(file.status)}
-          </span>
+          </Chip>
           {file.status === "success" && file.pageUrl && (
             <a
               href={file.pageUrl}
@@ -95,20 +97,23 @@ const FileListItem: React.FC<FileListItemProps> = ({
           )}
         </div>
       </div>
-      <button
+      <Button
+        isIconOnly
+        radius="full"
+        size="sm"
+        color={isInProgress ? "default" : "danger"}
         className={clsx(
-          "flex-shrink-0 w-6 h-6 rounded-full text-white text-md font-bold border-0",
+          "text-white text-md font-bold border-0",
           {
-            "bg-gray-300 cursor-not-allowed opacity-60": isInProgress,
-            "bg-red-500 cursor-pointer": !isInProgress,
+            "cursor-not-allowed": isInProgress,
           }
         )}
-        onClick={() => onRemoveFile(file.id)}
+        onPress={() => onRemoveFile(file.id)}
         aria-label="Close"
         disabled={isInProgress}
       >
         ×
-      </button>
+      </Button>
     </div>
   );
 };
