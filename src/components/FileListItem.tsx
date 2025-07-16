@@ -65,12 +65,8 @@ const FileListItem: React.FC<FileListItemProps> = ({
           </span>
         </div>
         <div className="flex gap-2 items-center flex-wrap text-sm text-gray-600">
-          <Chip>
-            {formatFileSize(file.fileSize)}
-          </Chip>
-          <Chip
-            color={getStatusColor(file.status)}
-          >
+          <Chip>{formatFileSize(file.fileSize)}</Chip>
+          <Chip color={getStatusColor(file.status)}>
             {getStatusText(file.status)}
           </Chip>
           {file.status === "success" && file.pageUrl && (
@@ -102,12 +98,9 @@ const FileListItem: React.FC<FileListItemProps> = ({
         radius="full"
         size="sm"
         color={isInProgress ? "default" : "danger"}
-        className={clsx(
-          "text-white text-md font-bold border-0",
-          {
-            "cursor-not-allowed": isInProgress,
-          }
-        )}
+        className={clsx("text-md", {
+          "cursor-not-allowed": isInProgress,
+        })}
         onPress={() => onRemoveFile(file.id)}
         aria-label="Close"
         disabled={isInProgress}

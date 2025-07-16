@@ -255,12 +255,15 @@ const ImageToPdf: React.FC = () => {
                       </p>
                     </div>
                     <Button
-                      onPress={() => removeImage(image.filePath)}
-                      color="secondary"
+                      isIconOnly
+                      radius="full"
                       size="sm"
-                      className="ml-3 text-red-600 hover:text-red-800"
+                      color="danger"
+                      className="text-md"
+                      onPress={() => removeImage(image.filePath)}
+                      aria-label="remove"
                     >
-                      Видалити
+                      ×
                     </Button>
                   </div>
                 ))}
