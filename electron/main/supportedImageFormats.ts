@@ -1,0 +1,16 @@
+export const SUPPORTED_IMAGE_FORMATS = [
+  "jpg",
+  "jpeg",
+  "png",
+  "tiff",
+  "tif",
+  "bmp",
+  "gif",
+  "webp",
+  "jp2",
+  "j2k",
+  "jpf",
+  "jpx",
+  "jpm",
+  "mj2",
+];

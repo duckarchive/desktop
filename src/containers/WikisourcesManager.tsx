@@ -210,7 +210,7 @@ const WikisourcesManager: React.FC = () => {
         <SettingsModal username={username} onSave={setUsername} />
       </header>
 
-      <FileDropZone onFilesSelected={handleAddFiles} isDisabled={!username || isUploading} />
+      <FileDropZone mode="pdf" onFilesSelected={handleAddFiles} isDisabled={!username || isUploading} />
 
       {invalidFileNames.length > 0 && (
         <InvalidNames

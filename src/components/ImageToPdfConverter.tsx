@@ -5,6 +5,7 @@ import ProgressContainer from "./ProgressContainer";
 import { useToastHelpers } from "@/providers/ToastProvider";
 import { ImageToPdfEnvironmentStatus } from "@/containers/ImageToPdf";
 import { useElectronApi } from "@/providers/ElectronApiProvider";
+import FileDropZone from "@/components/FileDropZone";
 
 interface ImageFile {
   filePath: string;
@@ -71,19 +72,10 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({
     };
   }, []);
 
-  const handleSelectImages = async () => {
-    try {
-      if (!electronAPI) {
-        showError("Electron API недоступне");
-        return;
-      }
-      const files = await electronAPI.openImages();
-      if (files && files.length > 0) {
-        setSelectedImages(files);
-        setResult(null); // Clear previous result
-      }
-    } catch (error) {
-      console.error("Error selecting images:", error);
+  const handleSelectImages = async (files: RawFileItem[]) => {
+    if (files && files.length > 0) {
+      setSelectedImages(files);
+      setResult(null);
     }
   };
 
@@ -181,13 +173,11 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({
             </div>
           </div>
 
-          <Button
-            color="primary"
-            onPress={handleSelectImages}
-            disabled={isConverting}
-          >
-            Вибрати зображення
-          </Button>
+          <FileDropZone
+            mode="image"
+            onFilesSelected={handleSelectImages}
+            isDisabled={isConverting}
+          />
 
           {/* Selected Images */}
           {selectedImages.length > 0 && (

@@ -2,13 +2,16 @@ import { useToastHelpers } from "@/providers/ToastProvider";
 import { useElectronApi } from "@/providers/ElectronApiProvider";
 import clsx from "clsx";
 import React, { useCallback, useState } from "react";
+import { SUPPORTED_IMAGE_FORMATS } from "~/main/supportedImageFormats";
 
 interface FileDropZoneProps {
+  mode?: "pdf" | "image";
   onFilesSelected: (files: RawFileItem[]) => void;
   isDisabled?: boolean;
 }
 
 const FileDropZone: React.FC<FileDropZoneProps> = ({
+  mode = "pdf",
   onFilesSelected,
   isDisabled,
 }) => {
@@ -33,13 +36,18 @@ const FileDropZone: React.FC<FileDropZoneProps> = ({
 
       const files = e.dataTransfer.files;
       if (files.length === 0) return;
+      const targetType = mode === "pdf" ? "application/pdf" : "image/";
+      const targetExtensions =
+        mode === "pdf" ? ["pdf"] : SUPPORTED_IMAGE_FORMATS;
 
       const fileDataList = [];
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         if (
-          file.type === "application/pdf" ||
-          file.name.toLowerCase().endsWith(".pdf")
+          file.type.includes(targetType) ||
+          targetExtensions.includes(
+            file.name.toLowerCase().split(".").pop() || "none"
+          )
         ) {
           fileDataList.push({
             fileName: file.name,
@@ -57,14 +65,13 @@ const FileDropZone: React.FC<FileDropZoneProps> = ({
   );
 
   const handleSelectClick = useCallback(() => {
+    const openMethod = mode === "pdf" ? electronAPI.openPDFs : electronAPI.openImages;
     try {
-      electronAPI
-        .openFiles()
-        .then((fileDataList) => {
-          if (fileDataList && fileDataList.length > 0) {
-            onFilesSelected(fileDataList);
-          }
-        });
+      openMethod().then((fileDataList) => {
+        if (fileDataList && fileDataList.length > 0) {
+          onFilesSelected(fileDataList);
+        }
+      });
     } catch (error) {
       console.error("File selection failed:", error);
       showError("Не вдалося вибрати файли: " + (error as Error).message);
@@ -76,7 +83,8 @@ const FileDropZone: React.FC<FileDropZoneProps> = ({
       className={clsx(
         `w-full bg-white border-4 border-dashed rounded-xl p-12 text-center transition-all duration-300`,
         {
-          "border-gray-500 hover:border-green-500 text-gray-800 hover:bg-white cursor-pointer": !isDragOver && !isDisabled,
+          "border-gray-500 hover:border-green-500 text-gray-800 hover:bg-white cursor-pointer":
+            !isDragOver && !isDisabled,
           "border-green-500 bg-green-50 text-gray-800": isDragOver,
           "cursor-not-allowed text-gray-400": isDisabled,
         }
@@ -88,9 +96,7 @@ const FileDropZone: React.FC<FileDropZoneProps> = ({
       disabled={isDisabled}
     >
       <div className="text-5xl mb-4 opacity-70">📂</div>
-      <p className="text-xl font-semibold">
-        Перетягніть PDF файли сюди
-      </p>
+      <p className="text-xl font-semibold">Перетягніть {mode === "pdf" ? 'PDF файли': 'файли зображень'}  сюди</p>
       <p>або натисніть для вибору</p>
     </button>
   );

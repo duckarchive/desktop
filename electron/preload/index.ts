@@ -10,7 +10,7 @@ export interface ElectronAPI {
     fileSize: number;
   } | null>;
 
-  openFiles: () => Promise<Array<{
+  openPDFs: () => Promise<Array<{
     filePath: string;
     fileName: string;
     fileSize: number;
@@ -125,7 +125,7 @@ const electronAPI: ElectronAPI = {
   /**
    * Opens a file dialog and returns multiple file information
    */
-  openFiles: () => ipcRenderer.invoke('dialog:openFiles'),
+  openPDFs: () => ipcRenderer.invoke('dialog:openPDFs'),
 
   /**
    * Uploads a file to Wikisource
