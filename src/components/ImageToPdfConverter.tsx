@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Button from "./Button";
 import ProgressContainer from "./ProgressContainer";
-import EnvironmentSetupModal from "./EnvironmentSetupModal";
 import { useToastHelpers } from "@/providers/ToastProvider";
 import { ImageToPdfEnvironmentStatus } from "@/containers/ImageToPdf";
 
@@ -128,14 +127,7 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
   };
 
   if (environment.checking) {
-    return (
-      <div className="bg-white rounded-lg p-6">
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3">Checking environment...</span>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // Main conversion interface
@@ -168,7 +160,7 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Rotation
+                Поворот
               </label>
               <select
                 value={options.rotation}
@@ -180,7 +172,7 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="auto">Auto</option>
+                <option value="auto">Автоматично</option>
                 <option value={0}>0°</option>
                 <option value={90}>90°</option>
                 <option value={180}>180°</option>
@@ -192,7 +184,7 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
           {/* File Selection */}
           <div className="">
             <Button onClick={handleSelectImages} disabled={isConverting}>
-              Select Images
+              Вибрати зображення
             </Button>
           </div>
 
@@ -200,7 +192,7 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
           {selectedImages.length > 0 && (
             <div className="mb-4">
               <h3 className="text-lg font-medium mb-2">
-                Selected Images ({selectedImages.length})
+                Вибрані зображення ({selectedImages.length})
               </h3>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {selectedImages.map((image) => (
@@ -222,7 +214,7 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
                       size="small"
                       className="ml-3 text-red-600 hover:text-red-800"
                     >
-                      Remove
+                      Видалити
                     </Button>
                   </div>
                 ))}
@@ -239,10 +231,14 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
                 className="bg-green-600 hover:bg-green-700"
               >
                 {isConverting
-                  ? "Converting..."
-                  : `Convert ${selectedImages.length} Image${
-                      selectedImages.length > 1 ? "s" : ""
-                    } to PDF`}
+                  ? "Конвертуємо..."
+                  : `Конвертувати ${selectedImages.length} зображенн${
+                      selectedImages.length === 1
+                        ? "я"
+                        : selectedImages.length >= 2 && selectedImages.length <= 4
+                        ? "я"
+                        : "ь"
+                    } у PDF`}
               </Button>
             </div>
           )}
@@ -270,7 +266,7 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
               </p>
               {result.success && result.outputPath && (
                 <p className="text-green-600 text-sm mt-1">
-                  Saved to: {result.outputPath}
+                  Збережено у: {result.outputPath}
                 </p>
               )}
             </div>

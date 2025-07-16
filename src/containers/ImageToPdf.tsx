@@ -69,7 +69,7 @@ const ImageToPdf: React.FC = () => {
   return (
     <div className="flex flex-col gap-4">
       <header>
-        <h2 className="text-xl font-semibold">Image to PDF Converter</h2>
+        <h2 className="text-xl font-semibold">Зображення в PDF</h2>
         <EnvironmentSetupModal onEnvironmentChange={checkEnvironment} />
       </header>
       

@@ -13,15 +13,15 @@ const Navbar: React.FC<NavbarProps> = ({ activePage, onPageChange }) => {
   const navigationItems = [
     {
       id: "wikisources" as NavigationPage,
-      label: "Wikisources Manager",
+      label: "Менеджер Вікіджерел",
       icon: "📚",
-      description: "Upload and manage files to Wikisources",
+      description: "Завантажуйте та керуйте файлами для Вікіджерел",
     },
     {
       id: "imageToPdf" as NavigationPage,
-      label: "Image to PDF",
+      label: "Зображення в PDF",
       icon: "🖼️",
-      description: "Convert images to PDF documents",
+      description: "Конвертуйте зображення у PDF документи",
     },
   ];
 
@@ -32,7 +32,6 @@ const Navbar: React.FC<NavbarProps> = ({ activePage, onPageChange }) => {
           <h1 className="text-lg font-semibold text-gray-900">
             Качиний Помічник
           </h1>
-          <p className="text-sm text-gray-600">Archive Management Tools</p>
         </div>
 
         <nav className="space-y-2">
@@ -41,12 +40,10 @@ const Navbar: React.FC<NavbarProps> = ({ activePage, onPageChange }) => {
               key={item.id}
               onClick={() => onPageChange(item.id)}
               className={clsx(
-                "w-full text-left p-2 bg-white rounded-lg transition-colors duration-150 cursor-pointer border-0",
+                "w-full text-left p-2 rounded-lg transition-colors duration-150 cursor-pointer border-0 text-gray-800",
                 {
-                  "bg-gray-800":
-                    activePage === item.id,
-                  "hover:bg-gray-200 text-gray-700 border border-transparent":
-                    activePage !== item.id,
+                  "bg-gray-800 text-white": activePage === item.id,
+                  "hover:bg-gray-200 hover:text-gray-700 bg-white": activePage !== item.id,
                 }
               )}
             >
