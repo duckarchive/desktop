@@ -272,10 +272,3 @@ if (process.contextIsolated) {
   // Fallback for development
   (window as any).electronAPI = electronAPI;
 }
-
-// Type declaration for the global electronAPI
-declare global {
-  interface Window {
-    electronAPI: ElectronAPI;
-  }
-}
