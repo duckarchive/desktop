@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
-import Button from "./Button";
+import { Button } from "@heroui/button";
 import ProgressContainer from "./ProgressContainer";
 import { useToastHelpers } from "@/providers/ToastProvider";
 import { ImageToPdfEnvironmentStatus } from "@/containers/ImageToPdf";
+import { useElectronApi } from "@/providers/ElectronApiProvider";
 
 interface ImageFile {
   filePath: string;
@@ -21,6 +22,7 @@ interface ImageToPdfConverterProps {
 
 export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ environment }) => {
   const { showError } = useToastHelpers();
+  const electronAPI = useElectronApi();
   const [selectedImages, setSelectedImages] = useState<ImageFile[]>([]);
   const [isConverting, setIsConverting] = useState(false);
   const [progress, setProgress] = useState<{
@@ -39,28 +41,24 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
 
   // Set up progress listener
   useEffect(() => {
-    if (!window.electronAPI) {
-      showError("Electron API недоступне");
-      return;
-    }
     const handleProgress = (data: { progress: number; message: string }) => {
       setProgress(data);
     };
 
-    window.electronAPI.imageConverter.onProgress(handleProgress);
+    electronAPI.imageConverter.onProgress(handleProgress);
 
     return () => {
-      window.electronAPI?.imageConverter.removeProgressListener();
+      electronAPI.imageConverter.removeProgressListener();
     };
   }, []);
 
   const handleSelectImages = async () => {
     try {
-      if (!window.electronAPI) {
+      if (!electronAPI) {
         showError("Electron API недоступне");
         return;
       }
-      const files = await window.electronAPI.openImages();
+      const files = await electronAPI.openImages();
       if (files && files.length > 0) {
         setSelectedImages(files);
         setResult(null); // Clear previous result
@@ -78,12 +76,12 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
     setResult(null);
 
     try {
-      if (!window.electronAPI) {
+      if (!electronAPI) {
         showError("Electron API недоступне");
         return;
       }
       // Get output path from user
-      const outputPath = await window.electronAPI.savePdf(
+      const outputPath = await electronAPI.savePdf(
         "converted_images.pdf"
       );
       if (!outputPath) {
@@ -92,7 +90,7 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
       }
 
       // Convert images
-      const result = await window.electronAPI.imageConverter.convertToPdf(
+      const result = await electronAPI.imageConverter.convertToPdf(
         selectedImages.map((img) => img.filePath),
         {
           outputPath,
@@ -181,12 +179,9 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
             </div>
           </div>
 
-          {/* File Selection */}
-          <div className="">
-            <Button onClick={handleSelectImages} disabled={isConverting}>
-              Вибрати зображення
-            </Button>
-          </div>
+          <Button color="primary" onPress={handleSelectImages} disabled={isConverting}>
+            Вибрати зображення
+          </Button>
 
           {/* Selected Images */}
           {selectedImages.length > 0 && (
@@ -209,9 +204,9 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
                       </p>
                     </div>
                     <Button
-                      onClick={() => removeImage(image.filePath)}
-                      variant="secondary"
-                      size="small"
+                      onPress={() => removeImage(image.filePath)}
+                      color="secondary"
+                      size="sm"
                       className="ml-3 text-red-600 hover:text-red-800"
                     >
                       Видалити
@@ -226,7 +221,7 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
           {selectedImages.length > 0 && (
             <div className="mb-4">
               <Button
-                onClick={handleConvert}
+                onPress={handleConvert}
                 disabled={isConverting}
                 className="bg-green-600 hover:bg-green-700"
               >

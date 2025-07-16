@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import ImageToPdfConverter from "@/components/ImageToPdfConverter";
 import EnvironmentSetupModal from "@/components/EnvironmentSetupModal";
 import { useToastHelpers } from "@/providers/ToastProvider";
+import { useElectronApi } from "@/providers/ElectronApiProvider";
 
 export interface ImageToPdfEnvironmentStatus {
   checking: boolean
@@ -19,6 +20,7 @@ export interface ImageToPdfEnvironmentStatus {
 
 const ImageToPdf: React.FC = () => {
   const { showError } = useToastHelpers();
+  const electronAPI = useElectronApi();
   const [environment, setEnvironment] = useState<ImageToPdfEnvironmentStatus>({
     checking: true,
     pythonAvailable: false,
@@ -33,14 +35,10 @@ const ImageToPdf: React.FC = () => {
   }, [])
 
   const checkEnvironment = async () => {
-    if (!window.electronAPI) {
-      showError("Electron API недоступне");
-      return;
-    }
     setEnvironment(prev => ({ ...prev, checking: true }))
     
     try {
-      const result = await window.electronAPI.imageConverter.checkEnvironment()
+      const result = await electronAPI.imageConverter.checkEnvironment()
       setEnvironment({
         checking: false,
         pythonAvailable: result.pythonAvailable,

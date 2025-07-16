@@ -10,9 +10,11 @@ import { parseFileName } from "@/helpers/parse";
 import { uniqBy } from "lodash";
 import InvalidNames from "@/components/InvalidNames";
 import { WikiCredentials } from "~/main/uploadService";
+import { useElectronApi } from "@/providers/ElectronApiProvider";
 
 const WikisourcesManager: React.FC = () => {
   const { showError, showSuccess, showWarning } = useToastHelpers();
+  const electronAPI = useElectronApi();
   const [selectedFiles, setSelectedFiles] = useState<FileItem[]>([]);
   const [invalidFileNames, setInvalidFileNames] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -28,24 +30,19 @@ const WikisourcesManager: React.FC = () => {
   useEffect(() => {
     loadAppVersion();
 
-    // Listen for upload progress updates
-    if (window.electronAPI) {
-      window.electronAPI.onUploadProgress((data) => {
-        setProgress({ value: data.progress, message: data.message });
-      });
-    }
+    electronAPI.onUploadProgress((data) => {
+      setProgress({ value: data.progress, message: data.message });
+    })
   }, []);
 
   const loadAppVersion = async () => {
     try {
-      if (window.electronAPI) {
-        const status = await window.electronAPI.getCredentialsStatus();
-        // Show warning if credentials are missing
-        if (!status.hasCredentials) {
-          showError(
-            "Облікові дані відсутні! Будь ласка, налаштуйте Вікімедіа-бота"
-          );
-        }
+      const status = await electronAPI.getCredentialsStatus();
+      // Show warning if credentials are missing
+      if (!status.hasCredentials) {
+        showError(
+          "Облікові дані відсутні! Будь ласка, налаштуйте Вікімедіа-бота"
+        );
       }
     } catch (error) {
       console.error("Failed to load version:", error);
@@ -113,10 +110,6 @@ const WikisourcesManager: React.FC = () => {
       setIsUploading(true);
       setShowProgress(true);
 
-      if (!window.electronAPI) {
-        throw new Error("Electron API недоступне");
-      }
-
       const results: UploadResult[] = [];
       let successCount = 0;
       let errorCount = 0;
@@ -142,7 +135,7 @@ const WikisourcesManager: React.FC = () => {
 
         try {
           // Start the upload for this file
-          const result = await window.electronAPI.uploadFile(file.filePath);
+          const result = await electronAPI.uploadFile(file.filePath);
 
           if (result.success) {
             setSelectedFiles((prev: FileItem[]) =>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Button from "./Button";
-import { useToastHelpers } from "@/providers/ToastProvider";
+import { useElectronApi } from "@/providers/ElectronApiProvider";
 
 interface EnvironmentStatus {
   checking: boolean;
@@ -23,7 +23,7 @@ interface EnvironmentSetupModalProps {
 const EnvironmentSetupModal: React.FC<EnvironmentSetupModalProps> = ({
   onEnvironmentChange,
 }) => {
-  const { showError, showSuccess } = useToastHelpers();
+  const electronAPI = useElectronApi();
   const [environment, setEnvironment] = useState<EnvironmentStatus>({
     checking: true,
     pythonAvailable: false,
@@ -44,14 +44,10 @@ const EnvironmentSetupModal: React.FC<EnvironmentSetupModalProps> = ({
   }, []);
 
   const checkEnvironment = async () => {
-    if (!window.electronAPI) {
-      showError("Electron API недоступне");
-      return;
-    }
     setEnvironment((prev) => ({ ...prev, checking: true }));
 
     try {
-      const result = await window.electronAPI.imageConverter.checkEnvironment();
+      const result = await electronAPI.imageConverter.checkEnvironment();
       setEnvironment({
         checking: false,
         pythonAvailable: result.pythonAvailable,
@@ -80,11 +76,7 @@ const EnvironmentSetupModal: React.FC<EnvironmentSetupModalProps> = ({
   const handleInstallImg2pdf = async () => {
     setInstalling(true);
     try {
-      if (!window.electronAPI) {
-        showError("Electron API недоступне");
-        return;
-      }
-      const result = await window.electronAPI.imageConverter.installImg2pdf();
+      const result = await electronAPI.imageConverter.installImg2pdf();
       if (result.success) {
         await checkEnvironment(); // Refresh environment status
         onEnvironmentChange(); // Notify parent component
@@ -102,13 +94,9 @@ const EnvironmentSetupModal: React.FC<EnvironmentSetupModalProps> = ({
 
   const handleSelectImg2pdfExe = async () => {
     try {
-      if (!window.electronAPI) {
-        showError("Electron API недоступне");
-        return;
-      }
-      const exePath = await window.electronAPI.selectImg2pdfExe();
+      const exePath = await electronAPI.selectImg2pdfExe();
       if (exePath) {
-        const result = await window.electronAPI.imageConverter.setExePath(
+        const result = await electronAPI.imageConverter.setExePath(
           exePath
         );
         if (result.success) {

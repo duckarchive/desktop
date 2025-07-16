@@ -56,12 +56,7 @@ const FileDropZone: React.FC<FileDropZoneProps> = ({
 
   const handleSelectClick = useCallback(() => {
     try {
-      if (!window.electronAPI) {
-        showError("Electron API недоступне");
-        return;
-      }
-
-      window.electronAPI
+      electronAPI
         .openFiles()
         .then((fileDataList) => {
           if (fileDataList && fileDataList.length > 0) {

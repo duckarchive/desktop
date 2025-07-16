@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Button from "./Button";
 import { useToastHelpers } from "@/providers/ToastProvider";
+import { useElectronApi } from "@/providers/ElectronApiProvider";
 
 interface SettingsModalProps {
   onSave: () => void;
@@ -10,6 +11,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   onSave,
 }) => {
   const { showError, showSuccess, showWarning } = useToastHelpers();
+  const electronAPI = useElectronApi();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -21,11 +23,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   }, []);
 
   const loadCredentialsStatus = async () => {
-    if (!window.electronAPI) {
-      showError("Electron API недоступне");
-      return;
-    }
-    const status = await window.electronAPI.getCredentialsStatus();
+    const status = await electronAPI.getCredentialsStatus();
     setCredentialsStatus(status);
 
     if (status.hasCredentials) {
@@ -44,11 +42,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     setIsLoading(true);
 
     try {
-      if (!window.electronAPI) {
-        throw new Error("Electron API недоступне");
-      }
-
-      const result = await window.electronAPI.saveCredentials(
+      const result = await electronAPI.saveCredentials(
         username.trim(),
         password.trim()
       );
@@ -84,11 +78,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     setIsLoading(true);
 
     try {
-      if (!window.electronAPI) {
-        throw new Error("Electron API недоступне");
-      }
-
-      const result = await window.electronAPI.clearCredentials();
+      const result = await electronAPI.clearCredentials();
 
       if (result.success) {
         showSuccess("Облікові дані видалено!");
