@@ -7,7 +7,7 @@ import * as fs from 'fs'
 import { publishFileWithProgress } from './uploadService'
 import { parseFileName } from './parse'
 import { CredentialsManager } from './credentialsManager'
-import { imageConverter } from './imageConverter'
+import { ConversionOptions, imageConverter } from './imageConverter'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -531,11 +531,7 @@ ipcMain.handle("imageConverter:setExePath", async (_, exePath: string) => {
 ipcMain.handle("imageConverter:convertToPdf", async (
   event: IpcMainInvokeEvent, 
   imagePaths: string[], 
-  options: {
-    outputPath?: string
-    dpi?: number
-    rotation?: 'auto' | 0 | 90 | 180 | 270
-  } = {}
+  options: ConversionOptions = {}
 ) => {
   try {
     // Validate image files

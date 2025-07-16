@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@heroui/button";
+import { Select, SelectItem } from "@heroui/select";
 import ProgressContainer from "./ProgressContainer";
 import { useToastHelpers } from "@/providers/ToastProvider";
 import { ImageToPdfEnvironmentStatus } from "@/containers/ImageToPdf";
@@ -11,16 +12,36 @@ interface ImageFile {
   fileSize: number;
 }
 
-interface ConversionOptions {
-  dpi: number;
-  rotation: "auto" | 0 | 90 | 180 | 270;
-}
+const DPI_OPTIONS = [
+  {
+    label: "150 DPI",
+    value: "150",
+  },
+  {
+    label: "300 DPI",
+    value: "300",
+  },
+  {
+    label: "600 DPI",
+    value: "600",
+  },
+];
+
+const ROTATION_OPTIONS = [
+  { label: "Автоматично", value: "auto" },
+  { label: "0°", value: "0" },
+  { label: "90°", value: "90" },
+  { label: "180°", value: "180" },
+  { label: "270°", value: "270" },
+];
 
 interface ImageToPdfConverterProps {
   environment: ImageToPdfEnvironmentStatus;
 }
 
-export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ environment }) => {
+export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({
+  environment,
+}) => {
   const { showError } = useToastHelpers();
   const electronAPI = useElectronApi();
   const [selectedImages, setSelectedImages] = useState<ImageFile[]>([]);
@@ -34,10 +55,8 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
     message: string;
     outputPath?: string;
   } | null>(null);
-  const [options, setOptions] = useState<ConversionOptions>({
-    dpi: 300,
-    rotation: "auto",
-  });
+  const [dpi, setDpi] = useState<string>("300");
+  const [rotation, setRotation] = useState<string>("auto");
 
   // Set up progress listener
   useEffect(() => {
@@ -81,9 +100,7 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
         return;
       }
       // Get output path from user
-      const outputPath = await electronAPI.savePdf(
-        "converted_images.pdf"
-      );
+      const outputPath = await electronAPI.savePdf("converted_images.pdf");
       if (!outputPath) {
         setIsConverting(false);
         return;
@@ -94,7 +111,8 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
         selectedImages.map((img) => img.filePath),
         {
           outputPath,
-          ...options,
+          dpi,
+          rotation,
         }
       );
 
@@ -137,49 +155,37 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
           {/* Conversion Options */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                DPI
-              </label>
-              <select
-                value={options.dpi}
-                onChange={(e) =>
-                  setOptions((prev) => ({
-                    ...prev,
-                    dpi: parseInt(e.target.value),
-                  }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <Select
+                label="DPI"
+                defaultSelectedKeys={[dpi]}
+                onSelectionChange={([newDpi]) => setDpi(newDpi.toString())}
+                className="w-full"
               >
-                <option value={150}>150 DPI</option>
-                <option value={300}>300 DPI</option>
-                <option value={600}>600 DPI</option>
-              </select>
+                {DPI_OPTIONS.map((option) => (
+                  <SelectItem key={option.value}>{option.label}</SelectItem>
+                ))}
+              </Select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Поворот
-              </label>
-              <select
-                value={options.rotation}
-                onChange={(e) =>
-                  setOptions((prev) => ({
-                    ...prev,
-                    rotation: e.target.value as ConversionOptions["rotation"],
-                  }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <Select
+                label="Поворот"
+                defaultSelectedKeys={[rotation]}
+                onSelectionChange={([newRotation]) => setRotation(newRotation.toString())}
+                className="w-full"
               >
-                <option value="auto">Автоматично</option>
-                <option value={0}>0°</option>
-                <option value={90}>90°</option>
-                <option value={180}>180°</option>
-                <option value={270}>270°</option>
-              </select>
+                {ROTATION_OPTIONS.map((option) => (
+                  <SelectItem key={option.value}>{option.label}</SelectItem>
+                ))}
+              </Select>
             </div>
           </div>
 
-          <Button color="primary" onPress={handleSelectImages} disabled={isConverting}>
+          <Button
+            color="primary"
+            onPress={handleSelectImages}
+            disabled={isConverting}
+          >
             Вибрати зображення
           </Button>
 
@@ -230,7 +236,8 @@ export const ImageToPdfConverter: React.FC<ImageToPdfConverterProps> = ({ enviro
                   : `Конвертувати ${selectedImages.length} зображенн${
                       selectedImages.length === 1
                         ? "я"
-                        : selectedImages.length >= 2 && selectedImages.length <= 4
+                        : selectedImages.length >= 2 &&
+                          selectedImages.length <= 4
                         ? "я"
                         : "ь"
                     } у PDF`}

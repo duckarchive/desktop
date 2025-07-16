@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+import { ConversionOptions } from '~/main/imageConverter';
 
 // Define the API interface for type safety
 export interface ElectronAPI {
@@ -88,10 +89,7 @@ export interface ElectronAPI {
       success: boolean;
       message: string;
     }>;
-    convertToPdf: (imagePaths: string[], options?: {
-      outputPath?: string;
-      rotation?: 'auto' | 0 | 90 | 180 | 270;
-    }) => Promise<{
+    convertToPdf: (imagePaths: string[], options?: ConversionOptions) => Promise<{
       success: boolean;
       outputPath?: string;
       message: string;
@@ -224,11 +222,7 @@ const electronAPI: ElectronAPI = {
     /**
      * Convert images to PDF
      */
-    convertToPdf: (imagePaths: string[], options?: {
-      outputPath?: string;
-      dpi?: number;
-      rotation?: 'auto' | 0 | 90 | 180 | 270;
-    }) => ipcRenderer.invoke('imageConverter:convertToPdf', imagePaths, options),
+    convertToPdf: (imagePaths: string[], options?: ConversionOptions) => ipcRenderer.invoke('imageConverter:convertToPdf', imagePaths, options),
 
     /**
      * Get supported image formats for conversion

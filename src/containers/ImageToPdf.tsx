@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ImageToPdfConverter from "@/components/ImageToPdfConverter";
 import EnvironmentSetupModal from "@/components/EnvironmentSetupModal";
-import { useToastHelpers } from "@/providers/ToastProvider";
 import { useElectronApi } from "@/providers/ElectronApiProvider";
 
 export interface ImageToPdfEnvironmentStatus {
@@ -19,7 +18,6 @@ export interface ImageToPdfEnvironmentStatus {
 }
 
 const ImageToPdf: React.FC = () => {
-  const { showError } = useToastHelpers();
   const electronAPI = useElectronApi();
   const [environment, setEnvironment] = useState<ImageToPdfEnvironmentStatus>({
     checking: true,

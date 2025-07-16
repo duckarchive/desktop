@@ -8,8 +8,8 @@ const execAsync = promisify(exec)
 
 export interface ConversionOptions {
   outputPath?: string
-  dpi?: number
-  rotation?: 'auto' | 0 | 90 | 180 | 270
+  dpi?: string
+  rotation?: string
 }
 
 export interface ConversionResult {
