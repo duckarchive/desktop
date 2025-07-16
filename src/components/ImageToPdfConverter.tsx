@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import Button from './Button'
 import ProgressContainer from './ProgressContainer'
+import { useToastHelpers } from '@/providers/ToastProvider'
 
 interface ImageFile {
   filePath: string
@@ -28,6 +29,7 @@ interface EnvironmentStatus {
 }
 
 export const ImageToPdfConverter: React.FC = () => {
+  const { showError } = useToastHelpers();
   const [selectedImages, setSelectedImages] = useState<ImageFile[]>([])
   const [isConverting, setIsConverting] = useState(false)
   const [progress, setProgress] = useState<{ progress: number; message: string } | null>(null)
@@ -52,6 +54,10 @@ export const ImageToPdfConverter: React.FC = () => {
 
   // Set up progress listener
   useEffect(() => {
+    if (!window.electronAPI) {
+      showError("Electron API недоступне");
+      return;
+    }
     const handleProgress = (data: { progress: number; message: string }) => {
       setProgress(data)
     }
@@ -59,11 +65,15 @@ export const ImageToPdfConverter: React.FC = () => {
     window.electronAPI.imageConverter.onProgress(handleProgress)
 
     return () => {
-      window.electronAPI.imageConverter.removeProgressListener()
+      window.electronAPI?.imageConverter.removeProgressListener()
     }
   }, [])
 
   const checkEnvironment = async () => {
+    if (!window.electronAPI) {
+      showError("Electron API недоступне");
+      return;
+    }
     setEnvironment(prev => ({ ...prev, checking: true }))
     
     try {
@@ -95,6 +105,10 @@ export const ImageToPdfConverter: React.FC = () => {
 
   const handleSelectImages = async () => {
     try {
+      if (!window.electronAPI) {
+        showError("Electron API недоступне");
+        return;
+      }
       const files = await window.electronAPI.openImages()
       if (files && files.length > 0) {
         setSelectedImages(files)
@@ -108,6 +122,10 @@ export const ImageToPdfConverter: React.FC = () => {
   const handleInstallImg2pdf = async () => {
     setInstalling(true)
     try {
+      if (!window.electronAPI) {
+        showError("Electron API недоступне");
+        return;
+      }
       const result = await window.electronAPI.imageConverter.installImg2pdf()
       if (result.success) {
         await checkEnvironment() // Refresh environment status
@@ -125,6 +143,10 @@ export const ImageToPdfConverter: React.FC = () => {
 
   const handleSelectImg2pdfExe = async () => {
     try {
+      if (!window.electronAPI) {
+        showError("Electron API недоступне");
+        return;
+      }
       const exePath = await window.electronAPI.selectImg2pdfExe()
       if (exePath) {
         const result = await window.electronAPI.imageConverter.setExePath(exePath)
@@ -149,6 +171,10 @@ export const ImageToPdfConverter: React.FC = () => {
     setResult(null)
 
     try {
+      if (!window.electronAPI) {
+        showError("Electron API недоступне");
+        return;
+      }
       // Get output path from user
       const outputPath = await window.electronAPI.savePdf('converted_images.pdf')
       if (!outputPath) {
@@ -192,7 +218,6 @@ export const ImageToPdfConverter: React.FC = () => {
   if (environment.checking) {
     return (
       <div className="bg-white rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Image to PDF Converter</h2>
         <div className="flex items-center justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <span className="ml-3">Checking environment...</span>
@@ -205,7 +230,6 @@ export const ImageToPdfConverter: React.FC = () => {
   if (environment.needsSetup) {
     return (
       <div className="bg-white rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Image to PDF Converter</h2>
         
         <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4">
           <h3 className="text-yellow-800 font-medium mb-2">Setup Required</h3>
@@ -265,7 +289,6 @@ export const ImageToPdfConverter: React.FC = () => {
   // Main conversion interface when setup is complete
   return (
     <div className="bg-white rounded-lg p-6">
-      <h2 className="text-xl font-semibold mb-4">Image to PDF Converter</h2>
       
       {/* Environment Status */}
       <div className="bg-green-50 border border-green-200 rounded-md p-3 mb-4">
