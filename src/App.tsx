@@ -6,6 +6,7 @@ import UploadResults from "@/components/UploadResults";
 import SettingsModal from "@/components/SettingsModal";
 import Footer from "@/components/Footer";
 import Button from "@/components/Button";
+import ImageToPdfConverter from "@/components/ImageToPdfConverter";
 import { useToastHelpers } from "@/providers/ToastProvider";
 import { parseFileName } from "@/helpers/parse";
 import { uniqBy } from "lodash";
@@ -26,6 +27,7 @@ const App: React.FC = () => {
   const [showResults, setShowResults] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [username, setUsername] = useState<WikiCredentials['username'] | null>(null);
+  const [activeTab, setActiveTab] = useState<'upload' | 'converter'>('upload');
 
   // Load app version and credentials status
   useEffect(() => {
@@ -240,36 +242,71 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <FileDropZone onFilesSelected={handleAddFiles} isDisabled={isUploading} />
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200 mb-6">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('upload')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'upload'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            File Upload
+          </button>
+          <button
+            onClick={() => setActiveTab('converter')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'converter'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Image to PDF
+          </button>
+        </nav>
+      </div>
 
-      {invalidFileNames.length > 0 && (
-        <InvalidNames
-          invalidFileNames={invalidFileNames}
-          onClose={clearInvalidNames}
-        />
+      {/* Tab Content */}
+      {activeTab === 'upload' && (
+        <>
+          <FileDropZone onFilesSelected={handleAddFiles} isDisabled={isUploading} />
+
+          {invalidFileNames.length > 0 && (
+            <InvalidNames
+              invalidFileNames={invalidFileNames}
+              onClose={clearInvalidNames}
+            />
+          )}
+
+          <FilesList
+            files={selectedFiles}
+            onRemoveFile={removeFile}
+            onClearAllFiles={handleClearFilesClick}
+          />
+
+          <ProgressContainer
+            show={showProgress}
+            progress={progress.value}
+            message={progress.message}
+          />
+
+          <UploadResults show={showResults} results={uploadResults} onClose={handleClearFilesClick} />
+
+          {selectedFiles.length > 0 && !isUploading && (
+            <Button
+              disabled={!hasPendingFiles}
+              onClick={uploadFiles}
+            >
+              Почати публікацію
+            </Button>
+          )}
+        </>
       )}
 
-      <FilesList
-        files={selectedFiles}
-        onRemoveFile={removeFile}
-        onClearAllFiles={handleClearFilesClick}
-      />
-
-      <ProgressContainer
-        show={showProgress}
-        progress={progress.value}
-        message={progress.message}
-      />
-
-      <UploadResults show={showResults} results={uploadResults} onClose={handleClearFilesClick} />
-
-      {selectedFiles.length > 0 && !isUploading && (
-        <Button
-          disabled={!hasPendingFiles}
-          onClick={uploadFiles}
-        >
-          Почати публікацію
-        </Button>
+      {activeTab === 'converter' && (
+        <ImageToPdfConverter />
       )}
 
       <Footer />

@@ -7,6 +7,7 @@ import * as fs from 'fs'
 import { publishFileWithProgress } from './uploadService'
 import { parseFileName } from './parse'
 import { CredentialsManager } from './credentialsManager'
+import { imageConverter } from './imageConverter'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -403,4 +404,181 @@ ipcMain.handle("credentials:clear", () => {
   } catch (error) {
     return { success: false, message: "Помилка видалення облікових даних" }
   }
+})
+
+// ============ Image to PDF Conversion Handlers ============
+
+// Handle image files selection for conversion
+ipcMain.handle("dialog:openImages", async () => {
+  if (!win) return null
+
+  const result = await dialog.showOpenDialog(win, {
+    properties: ["openFile", "multiSelections"],
+    filters: [
+      { 
+        name: "Image Files", 
+        extensions: [
+          "jpg", "jpeg", "png", "tiff", "tif", 
+          "bmp", "gif", "webp", "jp2", "j2k",
+          "jpf", "jpx", "jpm", "mj2"
+        ] 
+      },
+      { name: "All Files", extensions: ["*"] },
+    ],
+  })
+
+  if (result.canceled || result.filePaths.length === 0) {
+    return []
+  }
+
+  return result.filePaths.map((filePath) => {
+    const fileName = path.basename(filePath)
+    const fileSize = fs.statSync(filePath).size
+    return {
+      filePath,
+      fileName,
+      fileSize,
+    }
+  })
+})
+
+// Handle save PDF dialog
+ipcMain.handle("dialog:savePdf", async (_, defaultName?: string) => {
+  if (!win) return null
+
+  const result = await dialog.showSaveDialog(win, {
+    filters: [
+      { name: "PDF Files", extensions: ["pdf"] },
+      { name: "All Files", extensions: ["*"] },
+    ],
+    defaultPath: defaultName || "converted_images.pdf"
+  })
+
+  if (result.canceled || !result.filePath) {
+    return null
+  }
+
+  return result.filePath
+})
+
+// Handle img2pdf.exe file selection (Windows)
+ipcMain.handle("dialog:selectImg2pdfExe", async () => {
+  if (!win) return null
+
+  const result = await dialog.showOpenDialog(win, {
+    properties: ["openFile"],
+    filters: [
+      { name: "img2pdf Executable", extensions: ["exe"] },
+      { name: "All Files", extensions: ["*"] },
+    ],
+    title: "Select img2pdf.exe"
+  })
+
+  if (result.canceled || result.filePaths.length === 0) {
+    return null
+  }
+
+  return result.filePaths[0]
+})
+
+// Check environment following the plan
+ipcMain.handle("imageConverter:checkEnvironment", async () => {
+  try {
+    const status = await imageConverter.checkEnvironment()
+    return {
+      success: true,
+      ...status
+    }
+  } catch (error) {
+    return {
+      success: false,
+      pythonAvailable: false,
+      img2pdfAvailable: false,
+      isWindows: process.platform === 'win32',
+      needsSetup: true,
+      error: error instanceof Error ? error.message : "Unknown error"
+    }
+  }
+})
+
+// Install img2pdf package (Step 1.1.2)
+ipcMain.handle("imageConverter:installImg2pdf", async () => {
+  try {
+    const result = await imageConverter.installImg2pdf()
+    return result
+  } catch (error) {
+    return {
+      success: false,
+      message: `Installation failed: ${error instanceof Error ? error.message : "Unknown error"}`
+    }
+  }
+})
+
+// Set img2pdf.exe path for Windows (Step 1.2.1)
+ipcMain.handle("imageConverter:setExePath", async (_, exePath: string) => {
+  try {
+    const result = await imageConverter.setImg2pdfExePath(exePath)
+    return result
+  } catch (error) {
+    return {
+      success: false,
+      message: `Failed to set exe path: ${error instanceof Error ? error.message : "Unknown error"}`
+    }
+  }
+})
+
+// Convert images to PDF
+ipcMain.handle("imageConverter:convertToPdf", async (
+  event: IpcMainInvokeEvent, 
+  imagePaths: string[], 
+  options: {
+    outputPath?: string
+    dpi?: number
+    rotation?: 'auto' | 0 | 90 | 180 | 270
+  } = {}
+) => {
+  try {
+    // Validate image files
+    const validation = imageConverter.validateImageFiles(imagePaths)
+    if (!validation.valid) {
+      return {
+        success: false,
+        message: `Unsupported file formats detected: ${validation.unsupportedFiles.join(', ')}`,
+        error: 'UNSUPPORTED_FORMAT'
+      }
+    }
+
+    // Send progress update
+    event.sender.send("imageConverter:progress", { 
+      progress: 10, 
+      message: "Starting conversion..." 
+    })
+
+    const result = await imageConverter.convertImagesToPdf(imagePaths, options)
+    
+    if (result.success) {
+      event.sender.send("imageConverter:progress", { 
+        progress: 100, 
+        message: "Conversion completed!" 
+      })
+    }
+
+    return result
+  } catch (error) {
+    return {
+      success: false,
+      message: `Conversion failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      error: error instanceof Error ? error.message : "Unknown error"
+    }
+  }
+})
+
+// Get supported image formats
+ipcMain.handle("imageConverter:getSupportedFormats", () => {
+  return imageConverter.getSupportedFormats()
+})
+
+// Validate image files
+ipcMain.handle("imageConverter:validateFiles", (_, filePaths: string[]) => {
+  return imageConverter.validateImageFiles(filePaths)
 })

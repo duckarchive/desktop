@@ -64,6 +64,56 @@ export interface ElectronAPI {
     parsed?: any;
     error?: string;
   }>;
+
+  // Image to PDF conversion operations
+  imageConverter: {
+    checkEnvironment: () => Promise<{
+      success: boolean;
+      pythonAvailable: boolean;
+      pythonPath?: string;
+      pythonVersion?: string;
+      img2pdfAvailable: boolean;
+      img2pdfVersion?: string;
+      img2pdfExePath?: string;
+      isWindows: boolean;
+      needsSetup: boolean;
+      setupInstructions?: string[];
+      error?: string;
+    }>;
+    installImg2pdf: () => Promise<{
+      success: boolean;
+      message: string;
+    }>;
+    setExePath: (exePath: string) => Promise<{
+      success: boolean;
+      message: string;
+    }>;
+    convertToPdf: (imagePaths: string[], options?: {
+      outputPath?: string;
+      rotation?: 'auto' | 0 | 90 | 180 | 270;
+    }) => Promise<{
+      success: boolean;
+      outputPath?: string;
+      message: string;
+      error?: string;
+    }>;
+    getSupportedFormats: () => Promise<string[]>;
+    validateFiles: (filePaths: string[]) => Promise<{
+      valid: boolean;
+      unsupportedFiles: string[];
+    }>;
+    onProgress: (callback: (data: { progress: number; message: string }) => void) => void;
+    removeProgressListener: () => void;
+  };
+
+  // Additional file dialogs
+  openImages: () => Promise<Array<{
+    filePath: string;
+    fileName: string;
+    fileSize: number;
+  }>>;
+  savePdf: (defaultName?: string) => Promise<string | null>;
+  selectImg2pdfExe: () => Promise<string | null>;
 }
 
 // Expose protected methods that allow the renderer process to use
@@ -139,6 +189,74 @@ const electronAPI: ElectronAPI = {
    * @param fileName - The name of the file to validate
    */
   validateFileName: (fileName: string) => ipcRenderer.invoke('validate:fileName', fileName),
+
+  /**
+   * Opens a file dialog to select image files
+   */
+  openImages: () => ipcRenderer.invoke('dialog:openImages'),
+
+  /**
+   * Opens a file dialog to save a PDF file
+   */
+  savePdf: (defaultName?: string) => ipcRenderer.invoke('dialog:savePdf', defaultName),
+
+  /**
+   * Opens a file dialog to select the img2pdf executable
+   */
+  selectImg2pdfExe: () => ipcRenderer.invoke('dialog:selectImg2pdfExe'),
+
+  /**
+   * Image to PDF conversion functionality
+   */
+  imageConverter: {
+    checkEnvironment: () => ipcRenderer.invoke('imageConverter:checkEnvironment'),
+
+    /**
+     * Install img2pdf if not already installed
+     */
+    installImg2pdf: () => ipcRenderer.invoke('imageConverter:installImg2pdf'),
+
+    /**
+     * Set the executable path for img2pdf
+     */
+    setExePath: (exePath: string) => ipcRenderer.invoke('imageConverter:setExePath', exePath),
+
+    /**
+     * Convert images to PDF
+     */
+    convertToPdf: (imagePaths: string[], options?: {
+      outputPath?: string;
+      dpi?: number;
+      rotation?: 'auto' | 0 | 90 | 180 | 270;
+    }) => ipcRenderer.invoke('imageConverter:convertToPdf', imagePaths, options),
+
+    /**
+     * Get supported image formats for conversion
+     */
+    getSupportedFormats: () => ipcRenderer.invoke('imageConverter:getSupportedFormats'),
+
+    /**
+     * Validate image files for conversion
+     */
+    validateFiles: (filePaths: string[]) => ipcRenderer.invoke('imageConverter:validateFiles', filePaths),
+
+    /**
+     * Listen for conversion progress updates
+     */
+    onProgress: (callback: (data: { progress: number; message: string }) => void) => {
+      const wrappedCallback = (_event: IpcRendererEvent, data: { progress: number; message: string }) => {
+        callback(data);
+      };
+      ipcRenderer.on('imageConverter:progress', wrappedCallback);
+    },
+
+    /**
+     * Remove conversion progress listener
+     */
+    removeProgressListener: () => {
+      ipcRenderer.removeAllListeners('imageConverter:progress');
+    },
+  },
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to
