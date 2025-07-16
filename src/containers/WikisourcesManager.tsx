@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import FileDropZone from "@/components/FileDropZone";
 import FilesList from "@/components/FilesList";
 import ProgressContainer from "@/components/ProgressContainer";
@@ -9,7 +9,6 @@ import { useToastHelpers } from "@/providers/ToastProvider";
 import { parseFileName } from "@/helpers/parse";
 import { uniqBy } from "lodash";
 import InvalidNames from "@/components/InvalidNames";
-import { WikiCredentials } from "~/main/uploadService";
 import { useElectronApi } from "@/providers/ElectronApiProvider";
 
 const WikisourcesManager: React.FC = () => {

@@ -1,4 +1,5 @@
 import { useToastHelpers } from "@/providers/ToastProvider";
+import { useElectronApi } from "@/providers/ElectronApiProvider";
 import clsx from "clsx";
 import React, { useCallback, useState } from "react";
 
@@ -12,6 +13,7 @@ const FileDropZone: React.FC<FileDropZoneProps> = ({
   isDisabled,
 }) => {
   const { showError } = useToastHelpers();
+  const electronAPI = useElectronApi();
   const [isDragOver, setIsDragOver] = useState(false);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {

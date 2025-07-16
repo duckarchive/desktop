@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import Button from "./Button";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from "@heroui/modal";
+import { Button } from "@heroui/button";
 import { useElectronApi } from "@/providers/ElectronApiProvider";
 
 interface EnvironmentStatus {
@@ -24,6 +32,7 @@ const EnvironmentSetupModal: React.FC<EnvironmentSetupModalProps> = ({
   onEnvironmentChange,
 }) => {
   const electronAPI = useElectronApi();
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [environment, setEnvironment] = useState<EnvironmentStatus>({
     checking: true,
     pythonAvailable: false,
@@ -31,7 +40,6 @@ const EnvironmentSetupModal: React.FC<EnvironmentSetupModalProps> = ({
     isWindows: false,
     needsSetup: false,
   });
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [result, setResult] = useState<{
     success: boolean;
@@ -96,9 +104,7 @@ const EnvironmentSetupModal: React.FC<EnvironmentSetupModalProps> = ({
     try {
       const exePath = await electronAPI.selectImg2pdfExe();
       if (exePath) {
-        const result = await electronAPI.imageConverter.setExePath(
-          exePath
-        );
+        const result = await electronAPI.imageConverter.setExePath(exePath);
         if (result.success) {
           await checkEnvironment(); // Refresh environment status
           onEnvironmentChange(); // Notify parent component
@@ -127,9 +133,11 @@ const EnvironmentSetupModal: React.FC<EnvironmentSetupModalProps> = ({
     }
 
     if (!environment.needsSetup) {
-      const { pythonAvailable, pythonVersion, img2pdfVersion, img2pdfExePath, img2pdfAvailable } = environment;
-      const pythonText = pythonAvailable && pythonVersion;
-      const img2pdfText = img2pdfAvailable && (img2pdfExePath || img2pdfVersion);
+      const pythonText =
+        environment.pythonAvailable && environment.pythonVersion;
+      const img2pdfText =
+        environment.img2pdfAvailable &&
+        (environment.img2pdfExePath || environment.img2pdfVersion);
       return (
         <span className="text-green-600">
           ✅ {pythonText} | img2pdf {img2pdfText}
@@ -144,49 +152,35 @@ const EnvironmentSetupModal: React.FC<EnvironmentSetupModalProps> = ({
     );
   };
 
-  if (!isModalOpen) {
-    return (
+  return (
+    <>
       <div
         className="text-sm text-gray-600 cursor-pointer"
-        onClick={() => setIsModalOpen(true)}
+        onClick={onOpen}
         aria-label="Open environment setup modal"
       >
         {getStatusDisplay()}
       </div>
-    );
-  } else {
-    return (
-      <>
-        <div
-          id="environment-setup-modal"
-          className="fixed inset-0 z-50 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4"
-        >
-          <div className="bg-black rounded-xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto relative shadow-2xl animate-in slide-in-from-bottom-12 fade-in-0 duration-300">
-            <span
-              className="absolute top-4 right-4 text-2xl font-bold cursor-pointer text-gray-400 hover:text-gray-200 transition-colors p-1 leading-none"
-              onClick={() => setIsModalOpen(false)}
-            >
-              &times;
-            </span>
-            <h2 className="text-2xl font-semibold text-gray-200 mb-4 pr-8">
-              Налаштування конвертера
-            </h2>
 
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            Налаштування конвертера
+          </ModalHeader>
+          <ModalBody>
             <div className="space-y-4">
               {/* Current Status */}
-              <div className="bg-gray-800 rounded-lg p-4">
-                <h3 className="text-lg font-medium text-gray-200 mb-3">
-                  Поточний статус
-                </h3>
-
+              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Python:</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Python:
+                    </span>
                     <span
                       className={
                         environment.pythonAvailable
-                          ? "text-green-400"
-                          : "text-red-400"
+                          ? "text-green-600 dark:text-green-400"
+                          : "text-red-600 dark:text-red-400"
                       }
                     >
                       {environment.pythonAvailable
@@ -196,12 +190,14 @@ const EnvironmentSetupModal: React.FC<EnvironmentSetupModalProps> = ({
                   </div>
 
                   <div className="flex justify-between">
-                    <span className="text-gray-400">img2pdf:</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      img2pdf:
+                    </span>
                     <span
                       className={
                         environment.img2pdfAvailable
-                          ? "text-green-400"
-                          : "text-red-400"
+                          ? "text-green-600 dark:text-green-400"
+                          : "text-red-600 dark:text-red-400"
                       }
                     >
                       {environment.img2pdfAvailable
@@ -212,16 +208,20 @@ const EnvironmentSetupModal: React.FC<EnvironmentSetupModalProps> = ({
 
                   {environment.img2pdfExePath && (
                     <div className="flex justify-between">
-                      <span className="text-gray-400">img2pdf.exe:</span>
-                      <span className="text-green-400 text-xs">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        img2pdf.exe:
+                      </span>
+                      <span className="text-green-600 dark:text-green-400 text-xs">
                         ✅ {environment.img2pdfExePath}
                       </span>
                     </div>
                   )}
 
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Система:</span>
-                    <span className="text-gray-300">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Система:
+                    </span>
+                    <span className="text-gray-900 dark:text-gray-300">
                       {environment.isWindows ? "Windows" : "Linux/Mac"}
                     </span>
                   </div>
@@ -230,11 +230,11 @@ const EnvironmentSetupModal: React.FC<EnvironmentSetupModalProps> = ({
 
               {/* Setup Instructions */}
               {environment.needsSetup && environment.setupInstructions && (
-                <div className="bg-yellow-900/30 border border-yellow-600 rounded-lg p-4">
-                  <h3 className="text-yellow-400 font-medium mb-2">
+                <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-600 rounded-lg p-4">
+                  <h3 className="text-yellow-800 dark:text-yellow-400 font-medium mb-2">
                     Інструкції з налаштування
                   </h3>
-                  <div className="text-yellow-200 space-y-1">
+                  <div className="text-yellow-700 dark:text-yellow-200 space-y-1">
                     {environment.setupInstructions.map((instruction, index) => (
                       <p key={index} className="text-sm">
                         {instruction}
@@ -246,68 +246,30 @@ const EnvironmentSetupModal: React.FC<EnvironmentSetupModalProps> = ({
 
               {/* Error Display */}
               {environment.error && (
-                <div className="bg-red-900/30 border border-red-600 rounded-lg p-4">
-                  <h3 className="text-red-400 font-medium mb-2">Помилка</h3>
-                  <p className="text-red-200 text-sm">{environment.error}</p>
+                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-600 rounded-lg p-4">
+                  <h3 className="text-red-800 dark:text-red-400 font-medium mb-2">
+                    Помилка
+                  </h3>
+                  <p className="text-red-700 dark:text-red-200 text-sm">
+                    {environment.error}
+                  </p>
                 </div>
               )}
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap gap-3">
-                {/* Auto-install img2pdf if Python is available */}
-                {environment.pythonAvailable &&
-                  !environment.img2pdfAvailable && (
-                    <Button
-                      onClick={handleInstallImg2pdf}
-                      disabled={installing}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      {installing
-                        ? "Встановлення img2pdf..."
-                        : "Встановити img2pdf"}
-                    </Button>
-                  )}
-
-                {/* Select img2pdf.exe for Windows */}
-                {!environment.pythonAvailable && environment.isWindows && (
-                  <Button
-                    onClick={handleSelectImg2pdfExe}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    Обрати img2pdf.exe
-                  </Button>
-                )}
-
-                {/* Refresh button */}
-                <Button
-                  onClick={handleRefreshEnvironment}
-                  variant="secondary"
-                  disabled={environment.checking}
-                >
-                  {environment.checking ? "Перевірка..." : "Оновити статус"}
-                </Button>
-
-                {/* Close button */}
-                <Button
-                  onClick={() => setIsModalOpen(false)}
-                  variant="secondary"
-                >
-                  Закрити
-                </Button>
-              </div>
 
               {/* Result Display */}
               {result && (
                 <div
                   className={`p-4 rounded-lg ${
                     result.success
-                      ? "bg-green-900/30 border border-green-600"
-                      : "bg-red-900/30 border border-red-600"
+                      ? "bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-600"
+                      : "bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-600"
                   }`}
                 >
                   <p
                     className={
-                      result.success ? "text-green-200" : "text-red-200"
+                      result.success
+                        ? "text-green-700 dark:text-green-200"
+                        : "text-red-700 dark:text-red-200"
                     }
                   >
                     {result.message}
@@ -315,11 +277,40 @@ const EnvironmentSetupModal: React.FC<EnvironmentSetupModalProps> = ({
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      </>
-    );
-  }
+          </ModalBody>
+          <ModalFooter className="flex flex-wrap justify-end gap-3 w-full">
+            {/* Auto-install img2pdf if Python is available */}
+            {environment.pythonAvailable && !environment.img2pdfAvailable && (
+              <Button
+                color="primary"
+                variant="bordered"
+                onPress={handleInstallImg2pdf}
+                isLoading={installing}
+              >
+                {installing ? "Встановлення img2pdf..." : "Встановити img2pdf"}
+              </Button>
+            )}
+
+            {/* Select img2pdf.exe for Windows */}
+            {!environment.pythonAvailable && environment.isWindows && (
+              <Button color="success" onPress={handleSelectImg2pdfExe}>
+                Обрати img2pdf.exe
+              </Button>
+            )}
+
+            {/* Refresh button */}
+            <Button
+              onPress={handleRefreshEnvironment}
+              isDisabled={environment.checking}
+              color="primary"
+            >
+              {environment.checking ? "Перевірка..." : "Оновити"}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </>
+  );
 };
 
 export default EnvironmentSetupModal;
