@@ -10,6 +10,7 @@ import { parseFileName } from "@/helpers/parse";
 import { uniqBy } from "lodash";
 import InvalidNames from "@/components/InvalidNames";
 import { useElectronApi } from "@/providers/ElectronApiProvider";
+import { WikiCredentials } from "~/main/uploadService";
 
 const WikisourcesManager: React.FC = () => {
   const { showError, showSuccess, showWarning } = useToastHelpers();
@@ -24,29 +25,24 @@ const WikisourcesManager: React.FC = () => {
   });
   const [showProgress, setShowProgress] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [username, setUsername] = useState<WikiCredentials['username']>();
 
   // Load app version and credentials status
   useEffect(() => {
-    loadAppVersion();
+    electronAPI.getCredentials().then((status) => {
+      if (!status.success || !status.credentials) {
+        showError("Облікові дані відсутні! Будь ласка, налаштуйте Вікімедіа-бота");
+      }
+      setUsername(status.credentials?.username);
+    }).catch((error) => {
+      console.error("Failed to load credentials:", error);
+      showError("Помилка завантаження облікових даних: " + (error as Error).message);
+    });
 
     electronAPI.onUploadProgress((data) => {
       setProgress({ value: data.progress, message: data.message });
     })
   }, []);
-
-  const loadAppVersion = async () => {
-    try {
-      const status = await electronAPI.getCredentialsStatus();
-      // Show warning if credentials are missing
-      if (!status.hasCredentials) {
-        showError(
-          "Облікові дані відсутні! Будь ласка, налаштуйте Вікімедіа-бота"
-        );
-      }
-    } catch (error) {
-      console.error("Failed to load version:", error);
-    }
-  };
 
   const handleAddFiles = (fileDataList: RawFileItem[]) => {
     const validFiles: FileItem[] = [];
@@ -211,10 +207,10 @@ const WikisourcesManager: React.FC = () => {
     <div className="flex flex-col gap-4">
       <header className="">
         <h2 className="text-xl font-semibold">Менеджер Вікіджерел</h2>
-        <SettingsModal onSave={loadAppVersion} />
+        <SettingsModal username={username} onSave={setUsername} />
       </header>
 
-      <FileDropZone onFilesSelected={handleAddFiles} isDisabled={isUploading} />
+      <FileDropZone onFilesSelected={handleAddFiles} isDisabled={!username || isUploading} />
 
       {invalidFileNames.length > 0 && (
         <InvalidNames
