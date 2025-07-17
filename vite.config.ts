@@ -22,11 +22,7 @@ export default defineConfig(({ command }) => {
     },
     build: {
       rollupOptions: {
-        treeshake: {
-          preset: 'smallest',
-          propertyReadSideEffects: false,
-          tryCatchDeoptimization: false
-        }
+        treeshake: false
       }
     },
     plugins: [
