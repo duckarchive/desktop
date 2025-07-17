@@ -65,7 +65,8 @@ const FileDropZone: React.FC<FileDropZoneProps> = ({
   );
 
   const handleSelectClick = useCallback(() => {
-    const openMethod = mode === "pdf" ? electronAPI.openPDFs : electronAPI.openImages;
+    const openMethod =
+      mode === "pdf" ? electronAPI.openPDFs : electronAPI.openImages;
     try {
       openMethod().then((fileDataList) => {
         if (fileDataList && fileDataList.length > 0) {
@@ -81,12 +82,16 @@ const FileDropZone: React.FC<FileDropZoneProps> = ({
   return (
     <button
       className={clsx(
-        `w-full bg-white border-4 border-dashed rounded-xl p-12 text-center transition-all duration-300`,
+        `w-full
+        p-12
+        bg-white
+        rounded-xl
+        border-4 border-dashed border-gray-500 hover:border-green-500 disabled:border-transparent
+        text-center text-gray-800 disabled:text-gray-400
+        cursor-pointer disabled:cursor-not-allowed
+        transition-all duration-300`,
         {
-          "border-gray-500 hover:border-green-500 text-gray-800 hover:bg-white cursor-pointer":
-            !isDragOver && !isDisabled,
-          "border-green-500 bg-green-50 text-gray-800": isDragOver,
-          "cursor-not-allowed text-gray-400": isDisabled,
+          "border-green-500 text-gray-800": isDragOver,
         }
       )}
       onDragOver={handleDragOver}
@@ -96,7 +101,9 @@ const FileDropZone: React.FC<FileDropZoneProps> = ({
       disabled={isDisabled}
     >
       <div className="text-5xl mb-4 opacity-70">📂</div>
-      <p className="text-xl font-semibold">Перетягніть {mode === "pdf" ? 'PDF файли': 'файли зображень'}  сюди</p>
+      <p className="text-xl font-semibold">
+        Перетягніть {mode === "pdf" ? "PDF файли" : "файли зображень"} сюди
+      </p>
       <p>або натисніть для вибору</p>
     </button>
   );

@@ -16,34 +16,16 @@ const FilesList: React.FC<FilesListProps> = ({ files, onRemoveFile, onClearAllFi
   const isInProgress = files.some((file) => file.status === "uploading");
 
   return (
-    <div>
-      <div className="flex justify-between items-center py-2">
-        <h3 className="m-0">Вибрані файли ({files.length})</h3>
-        {
-          files.length > 0 && (
-            <Button
-              size="sm"
-              variant="bordered"
-              color="warning"
-              onPress={onClearAllFiles}
-              disabled={isInProgress}
-            >
-              Очистити список
-            </Button>
-          )
-        }
-      </div>
-      <div className="flex flex-col gap-1 bg-gray-600 p-4 rounded-xl max-h-96 overflow-y-scroll">
-        {files.map((file) => (
-          <FileListItem
-            key={file.id}
-            file={file}
-            isInProgress={isInProgress}
-            onRemoveFile={onRemoveFile}
-          />
-        ))}
-      </div>
-    </div>
+    <>
+      {files.map((file) => (
+        <FileListItem
+          key={file.id}
+          file={file}
+          isInProgress={isInProgress}
+          onRemoveFile={onRemoveFile}
+        />
+      ))}
+    </>
   );
 };
 

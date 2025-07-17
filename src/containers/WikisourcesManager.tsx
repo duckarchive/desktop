@@ -241,14 +241,28 @@ const WikisourcesManager: React.FC = () => {
       <UploadResults show={showResults} results={uploadResults} />
 
       {selectedFiles.length > 0 && !isUploading && (
-        <Button
-          size="lg"
-          color="primary"
-          variant={showResults ? "bordered" : "solid"}
-          onPress={showResults ? handleClearFilesClick : uploadFiles}
-        >
-          {showResults ? "Почати заново" : "Почати публікацію"}
-        </Button>
+        <div className="flex justify-between items-center gap-2">
+          <Button
+            size="lg"
+            variant="ghost"
+            color="warning"
+            onPress={handleClearFilesClick}
+            disabled={isUploading}
+            className="disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Очистити список
+          </Button>
+          {!showResults && (
+            <Button
+              size="lg"
+              color="primary"
+              className="grow"
+              onPress={uploadFiles}
+            >
+              Опублікувати
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );

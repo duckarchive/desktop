@@ -97,12 +97,10 @@ const FileListItem: React.FC<FileListItemProps> = ({
         isIconOnly
         radius="full"
         size="sm"
-        color={isInProgress ? "default" : "danger"}
-        className={clsx("text-md", {
-          "cursor-not-allowed": isInProgress,
-        })}
+        color="danger"
+        className="text-md leading-none disabled:cursor-not-allowed disabled:opacity-50"
         onPress={() => onRemoveFile(file.id)}
-        aria-label="Close"
+        aria-label="remove-file-from-list"
         disabled={isInProgress}
       >
         ×

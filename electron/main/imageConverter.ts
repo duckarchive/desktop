@@ -71,9 +71,9 @@ export class ImageConverter {
         // Step 1.1.2: img2pdf NOT installed, needs auto-installation
         status.needsSetup = true
         status.setupInstructions = [
-          'img2pdf package is not installed.',
-          'Click "Install img2pdf" to automatically install it via pip.',
-          'If automatic installation fails, you can install manually:',
+          'Пакет img2pdf не встановлено.',
+          'Натисніть "Встановити img2pdf", щоб автоматично встановити його через pip.',
+          'Якщо автоматичне встановлення не вдалося, ви можете встановити вручну:',
           `${pythonCheck.pythonPath} -m pip install img2pdf`
         ]
       }
@@ -89,26 +89,26 @@ export class ImageConverter {
         } else {
           status.needsSetup = true
           status.setupInstructions = [
-            'Python is not installed on your system.',
-            'For Windows, you can use the standalone img2pdf.exe:',
-            '1. Download img2pdf.exe from: https://gitlab.mister-muffin.de/josch/img2pdf/releases',
-            '2. Save it to a folder (e.g., C:\\Tools\\img2pdf.exe)',
-            '3. Click "Set img2pdf.exe Path" and select the downloaded file',
+            'Python не встановлено у вашій системі.',
+            'Для Windows ви можете використати окремий файл img2pdf.exe:',
+            '1. Завантажте img2pdf.exe з: https://gitlab.mister-muffin.de/josch/img2pdf/releases',
+            '2. Збережіть його у папку (наприклад, C:\\Tools\\img2pdf.exe)',
+            '3. Натисніть "Вказати шлях до img2pdf.exe" та виберіть завантажений файл',
             '',
-            'Alternatively, install Python from python.org and restart the app.'
+            'Або встановіть Python з python.org та перезапустіть додаток.'
           ]
         }
       } else {
         // Step 1.2.2: Non-Windows - must install Python
         status.needsSetup = true
         status.setupInstructions = [
-          'Python is not installed on your system.',
-          'Please install Python 3.x from one of these sources:',
-          '• Official Python: https://www.python.org/downloads/',
-          '• Package manager: sudo apt install python3 (Ubuntu/Debian)',
-          '• Package manager: brew install python3 (macOS)',
+          'Python не встановлено у вашій системі.',
+          'Будь ласка, встановіть Python 3.x з одного з цих джерел:',
+          '• Офіційний сайт Python: https://www.python.org/downloads/',
+          '• Менеджер пакетів: sudo apt install python3 (Ubuntu/Debian)',
+          '• Менеджер пакетів: brew install python3 (macOS)',
           '',
-          'After installing Python, restart the application.'
+          'Після встановлення Python перезапустіть додаток.'
         ]
       }
     }
@@ -205,7 +205,7 @@ export class ImageConverter {
     if (!this.pythonPath) {
       return {
         success: false,
-        message: 'Python is not available. Please install Python first.'
+        message: 'Python недоступний. Будь ласка, спочатку встановіть Python.'
       }
     }
 
@@ -218,19 +218,19 @@ export class ImageConverter {
         this.img2pdfAvailable = true
         return {
           success: true,
-          message: `img2pdf successfully installed (version ${verification.version})`
+          message: `img2pdf успішно встановлено (версія ${verification.version})`
         }
       } else {
         return {
           success: false,
-          message: 'Installation completed but img2pdf verification failed. Try manual installation.'
+          message: 'Встановлення завершено, але перевірка img2pdf не вдалася. Спробуйте встановити вручну.'
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const errorMessage = error instanceof Error ? error.message : 'Невідома помилка'
       return {
         success: false,
-        message: `Auto-installation failed: ${errorMessage}. Please install manually: ${this.pythonPath} -m pip install img2pdf`
+        message: `Автоматичне встановлення не вдалося: ${errorMessage}. Будь ласка, встановіть вручну: ${this.pythonPath} -m pip install img2pdf`
       }
     }
   }
@@ -242,7 +242,7 @@ export class ImageConverter {
     if (!fs.existsSync(exePath)) {
       return {
         success: false,
-        message: 'File does not exist at the specified path.'
+        message: 'Файл не знайдено за вказаним шляхом.'
       }
     }
 
@@ -252,19 +252,18 @@ export class ImageConverter {
         if (error || !stdout.includes('img2pdf')) {
           resolve({
             success: false,
-            message: 'The selected file does not appear to be img2pdf.exe'
+            message: 'Обраний файл не є img2pdf.exe'
           })
         } else {
           this.img2pdfExePath = exePath
           resolve({
             success: true,
-            message: `img2pdf.exe path set successfully: ${exePath}`
+            message: `Шлях до img2pdf.exe успішно встановлено: ${exePath}`
           })
         }
       })
     })
   }
-
   /**
    * Convert images to PDF using either Python img2pdf or standalone exe
    */
@@ -350,16 +349,16 @@ export class ImageConverter {
 
       process.on('close', (code) => {
         if (code === 0) {
-          resolve({
+            resolve({
             success: true,
             outputPath,
-            message: `Successfully converted ${imagePaths.length} image(s) to PDF using Python img2pdf`
-          })
+            message: `Успішно конвертовано ${imagePaths.length} зображення(нь) у PDF за допомогою img2pdf`
+            })
         } else {
           resolve({
             success: false,
-            message: `Python conversion failed with exit code ${code}`,
-            error: stderr || stdout || 'Unknown error'
+            message: `Помилка конвертації Python з кодом виходу ${code}`,
+            error: stderr || stdout || 'Невідома помилка'
           })
         }
       })
@@ -367,7 +366,7 @@ export class ImageConverter {
       process.on('error', (error) => {
         resolve({
           success: false,
-          message: `Failed to start Python conversion: ${error.message}`,
+          message: `Не вдалося запустити конвертацію Python: ${error.message}`,
           error: error.message
         })
       })
@@ -405,13 +404,13 @@ export class ImageConverter {
           resolve({
             success: true,
             outputPath,
-            message: `Successfully converted ${imagePaths.length} image(s) to PDF using img2pdf.exe`
+            message: `Успішно конвертовано ${imagePaths.length} зображення(нь) у PDF за допомогою img2pdf.exe`
           })
         } else {
           resolve({
             success: false,
-            message: `Exe conversion failed with exit code ${code}`,
-            error: stderr || stdout || 'Unknown error'
+            message: `Помилка конвертації exe з кодом виходу ${code}`,
+            error: stderr || stdout || 'Невідома помилка'
           })
         }
       })
@@ -419,14 +418,14 @@ export class ImageConverter {
       process.on('error', (error) => {
         resolve({
           success: false,
-          message: `Failed to start exe conversion: ${error.message}`,
+          message: `Не вдалося запустити конвертацію exe: ${error.message}`,
           error: error.message
         })
       })
     })
   }
 
-  /**
+ /**
    * Build command line arguments for img2pdf
    */
   private buildImg2pdfArgs(
