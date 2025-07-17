@@ -249,7 +249,7 @@ const WikisourcesManager: React.FC = () => {
             disabled={isUploading}
             className="disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Очистити список
+            Очистити всі {selectedFiles.length} файли(ів)
           </Button>
           {!showResults && (
             <Button

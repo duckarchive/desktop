@@ -66,7 +66,7 @@ const ImageToPdf: React.FC = () => {
     message: string;
     outputPath?: string;
   } | null>(null);
-  const [dpi, setDpi] = useState<string>("300");
+  const [dpi, setDpi] = useState<string>("150");
   const [rotation, setRotation] = useState<string>("auto");
 
   // Check environment on component mount
@@ -119,11 +119,13 @@ const ImageToPdf: React.FC = () => {
 
   const handleSelectImages = async (files: RawFileItem[]) => {
     if (files && files.length > 0) {
-      setSelectedImages(files.map((file) => ({
-        ...file,
-        id: file.filePath,
-        status: "pending",
-      })));
+      setSelectedImages(
+        files.map((file) => ({
+          ...file,
+          id: file.filePath,
+          status: "pending",
+        }))
+      );
       setResult(null);
     }
   };
@@ -175,6 +177,11 @@ const ImageToPdf: React.FC = () => {
     );
   }, []);
 
+  const handleClearFilesClick = () => {
+    setSelectedImages([]);
+    setResult(null);
+  };
+
   if (environment.checking) {
     return null;
   }
@@ -194,65 +201,12 @@ const ImageToPdf: React.FC = () => {
             onFilesSelected={handleSelectImages}
             isDisabled={isConverting}
           />
-          {/* Conversion Options */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Select
-                label="DPI"
-                defaultSelectedKeys={[dpi]}
-                onSelectionChange={([newDpi]) => setDpi(newDpi.toString())}
-                className="w-full"
-              >
-                {DPI_OPTIONS.map((option) => (
-                  <SelectItem key={option.value}>{option.label}</SelectItem>
-                ))}
-              </Select>
-            </div>
 
-            <div>
-              <Select
-                label="Поворот"
-                defaultSelectedKeys={[rotation]}
-                onSelectionChange={([newRotation]) =>
-                  setRotation(newRotation.toString())
-                }
-                className="w-full"
-              >
-                {ROTATION_OPTIONS.map((option) => (
-                  <SelectItem key={option.value}>{option.label}</SelectItem>
-                ))}
-              </Select>
-            </div>
-          </div>
-
-          
           <FilesList
             mode="image"
             files={selectedImages}
             onRemoveFile={removeImage}
           />
-
-          {/* Convert Button */}
-          {selectedImages.length > 0 && (
-            <div className="mb-4">
-              <Button
-                onPress={handleConvert}
-                disabled={isConverting}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                {isConverting
-                  ? "Конвертуємо..."
-                  : `Конвертувати ${selectedImages.length} зображенн${
-                      selectedImages.length === 1
-                        ? "я"
-                        : selectedImages.length >= 2 &&
-                          selectedImages.length <= 4
-                        ? "я"
-                        : "ь"
-                    } у PDF`}
-              </Button>
-            </div>
-          )}
 
           {/* Progress */}
           {isConverting && progress && (
@@ -281,6 +235,60 @@ const ImageToPdf: React.FC = () => {
                 </p>
               )}
             </div>
+          )}
+
+          {/* Convert Button */}
+          {selectedImages.length > 0 && !isConverting && (
+            <>
+              <div className="flex justify-between items-center gap-2">
+                <Select
+                  size="sm"
+                  label="DPI"
+                  defaultSelectedKeys={[dpi]}
+                  onSelectionChange={([newDpi]) => setDpi(newDpi.toString())}
+                  className="basis-1/4"
+                >
+                  {DPI_OPTIONS.map((option) => (
+                    <SelectItem key={option.value}>{option.label}</SelectItem>
+                  ))}
+                </Select>
+
+                <Select
+                  size="sm"
+                  label="Поворот"
+                  defaultSelectedKeys={[rotation]}
+                  onSelectionChange={([newRotation]) =>
+                    setRotation(newRotation.toString())
+                  }
+                  className="basis-1/4"
+                >
+                  {ROTATION_OPTIONS.map((option) => (
+                    <SelectItem key={option.value}>{option.label}</SelectItem>
+                  ))}
+                </Select>
+              </div>
+              <div className="flex justify-between items-center gap-2">
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  color="warning"
+                  onPress={handleClearFilesClick}
+                  disabled={isConverting}
+                  className="disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Очистити всі {selectedImages.length} файли(ів)
+                </Button>
+                <Button
+                  size="lg"
+                  color="primary"
+                  className="grow"
+                  onPress={handleConvert}
+                  disabled={isConverting}
+                >
+                  {isConverting ? "Конвертуємо..." : `Конвертувати`}
+                </Button>
+              </div>
+            </>
           )}
         </>
       )}
