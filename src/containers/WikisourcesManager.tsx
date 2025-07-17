@@ -229,7 +229,6 @@ const WikisourcesManager: React.FC = () => {
       <FilesList
         files={selectedFiles}
         onRemoveFile={removeFile}
-        onClearAllFiles={handleClearFilesClick}
       />
 
       <ProgressContainer

@@ -6,6 +6,7 @@ import { Select, SelectItem } from "@heroui/select";
 import ProgressContainer from "@/components/ProgressContainer";
 import { useToastHelpers } from "@/providers/ToastProvider";
 import FileDropZone from "@/components/FileDropZone";
+import FilesList from "@/components/FilesList";
 
 interface ImageToPdfEnvironmentStatus {
   checking: boolean;
@@ -19,12 +20,6 @@ interface ImageToPdfEnvironmentStatus {
   needsSetup: boolean;
   setupInstructions?: string[];
   error?: string;
-}
-
-interface ImageFile {
-  filePath: string;
-  fileName: string;
-  fileSize: number;
 }
 
 const DPI_OPTIONS = [
@@ -60,7 +55,7 @@ const ImageToPdf: React.FC = () => {
     needsSetup: false,
   });
   const { showError } = useToastHelpers();
-  const [selectedImages, setSelectedImages] = useState<ImageFile[]>([]);
+  const [selectedImages, setSelectedImages] = useState<FileItem[]>([]);
   const [isConverting, setIsConverting] = useState(false);
   const [progress, setProgress] = useState<{
     progress: number;
@@ -124,7 +119,11 @@ const ImageToPdf: React.FC = () => {
 
   const handleSelectImages = async (files: RawFileItem[]) => {
     if (files && files.length > 0) {
-      setSelectedImages(files);
+      setSelectedImages(files.map((file) => ({
+        ...file,
+        id: file.filePath,
+        status: "pending",
+      })));
       setResult(null);
     }
   };
@@ -176,14 +175,6 @@ const ImageToPdf: React.FC = () => {
     );
   }, []);
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
-
   if (environment.checking) {
     return null;
   }
@@ -234,42 +225,12 @@ const ImageToPdf: React.FC = () => {
             </div>
           </div>
 
-          {/* Selected Images */}
-          {selectedImages.length > 0 && (
-            <div className="mb-4">
-              <h3 className="text-lg font-medium mb-2">
-                Вибрані зображення ({selectedImages.length})
-              </h3>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {selectedImages.map((image) => (
-                  <div
-                    key={image.filePath}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-md"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {image.fileName}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {formatFileSize(image.fileSize)}
-                      </p>
-                    </div>
-                    <Button
-                      isIconOnly
-                      radius="full"
-                      size="sm"
-                      color="danger"
-                      className="text-md"
-                      onPress={() => removeImage(image.filePath)}
-                      aria-label="remove"
-                    >
-                      ×
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          
+          <FilesList
+            mode="image"
+            files={selectedImages}
+            onRemoveFile={removeImage}
+          />
 
           {/* Convert Button */}
           {selectedImages.length > 0 && (

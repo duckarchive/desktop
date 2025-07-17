@@ -5,6 +5,8 @@ import {
   ipcMain,
   dialog,
   IpcMainInvokeEvent,
+  net,
+  protocol,
 } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
@@ -81,6 +83,10 @@ const preload = path.join(__dirname, "../preload/index.mjs");
 const indexHtml = path.join(RENDERER_DIST, "index.html");
 
 async function createWindow() {
+  protocol.handle('preview', async (request) => {
+    const filePath = request.url.replace(`preview://`, 'file://');
+    return net.fetch(filePath);
+  });
   win = new BrowserWindow({
     width: 800,
     height: 600,
