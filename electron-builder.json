@@ -9,6 +9,8 @@
   "mac": {
     "artifactName": "macos_${version}.${ext}",
     "target": ["dmg", "zip"],
+    "notarize": false,
+    "gatekeeperAssess": false,
     "identity": "-"
   },
   "win": {
