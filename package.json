@@ -35,6 +35,7 @@
     "@heroui/badge": "^2.2.15",
     "@heroui/button": "^2.2.23",
     "@heroui/checkbox": "^2.3.23",
+    "@heroui/chip": "^2.2.19",
     "@heroui/form": "^2.1.23",
     "@heroui/image": "^2.2.15",
     "@heroui/input": "^2.4.24",
