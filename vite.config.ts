@@ -11,7 +11,7 @@ export default defineConfig(({ command }) => {
 
   const isServe = command === 'serve'
   const isBuild = command === 'build'
-  const sourcemap = isServe || !!process.env.VSCODE_DEBUG
+  const sourcemap = isServe || Boolean(process.env.VSCODE_DEBUG)
 
   return {
     resolve: {
@@ -19,6 +19,15 @@ export default defineConfig(({ command }) => {
         '@': path.join(__dirname, 'src'),
         '~': path.join(__dirname, 'electron')
       },
+    },
+    build: {
+      rollupOptions: {
+        treeshake: {
+          preset: 'smallest',
+          propertyReadSideEffects: false,
+          tryCatchDeoptimization: false
+        }
+      }
     },
     plugins: [
       react(),
@@ -45,7 +54,7 @@ export default defineConfig(({ command }) => {
               minify: isBuild,
               outDir: 'dist-electron/main',
               rollupOptions: {
-                external: Object.keys('dependencies' in pkg ? pkg.dependencies : {}),
+                external: Object.keys(pkg.dependencies || {}),
               },
             },
           },
@@ -66,7 +75,7 @@ export default defineConfig(({ command }) => {
               minify: isBuild,
               outDir: 'dist-electron/preload',
               rollupOptions: {
-                external: Object.keys('dependencies' in pkg ? pkg.dependencies : {}),
+                external: Object.keys(pkg.dependencies || {}),
               },
             },
           },
