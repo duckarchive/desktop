@@ -1,6 +1,4 @@
-import { Mwn } from "mwn";
-
-const ARCHIVES: Record<string, string> = {
+export const ARCHIVES: Record<string, string> = {
   ЦДКФФА:
     "Центральний державний кінофотофоноархів України ім. Г. С. Пшеничного",
   ЦДНТА: "Центральний державний науково-технічний архів України",
@@ -58,12 +56,12 @@ export interface ParsedFileName {
 }
 
 export const parseFileName = (fileName: string): ParsedFileName | undefined => {
-  Mwn.log(`[I] Parsing file name: ${fileName}`);
+  console.log(`[I] Parsing file name: ${fileName}`);
   const match = fileName.match(
     /^([А-ЯҐЄІЇ]+)\s([\dА-ЯҐЄІЇ]+)-([\dА-ЯҐЄІЇ]+)-([\dА-ЯҐЄІЇ]+)\.\s(\d{4}(?:-\d{4})?)\.\s(.+).pdf$/i
   );
   if (!match) {
-    Mwn.log(`[E] Failed to parse file name: ${fileName}`);
+    console.log(`[E] Failed to parse file name: ${fileName}`);
     return undefined;
   }
   const [_, a, f, d, c, dateRange, title] = match;
@@ -78,11 +76,11 @@ export const parseFileName = (fileName: string): ParsedFileName | undefined => {
     title.endsWith(" ") ||
     ARCHIVES[a] === undefined
   ) {
-    Mwn.log(`[E] Failed to parse file name: ${fileName}`);
+    console.log(`[E] Failed to parse file name: ${fileName}`);
     return undefined;
   }
 
-  Mwn.log(`[S] Parsed file name: ${fileName} -> ${a} ${f}-${d}-${c}. ${dateRange}. ${title}`);
+  console.log(`[S] Parsed file name: ${fileName} -> ${a} ${f}-${d}-${c}. ${dateRange}. ${title}`);
 
   return {
     fileName,
