@@ -3,10 +3,11 @@ import EnvironmentSetupModal from "@/components/EnvironmentSetupModal";
 import { useElectronApi } from "@/providers/ElectronApiProvider";
 import { Button } from "@heroui/button";
 import { Select, SelectItem } from "@heroui/select";
+import { Accordion, AccordionItem } from "@heroui/accordion";
 import ProgressContainer from "@/components/ProgressContainer";
-import { useToastHelpers } from "@/providers/ToastProvider";
 import FileDropZone from "@/components/FileDropZone";
 import FilesList from "@/components/FilesList";
+import { FileNameInput } from "@/components/FileNameInput";
 
 interface ImageToPdfEnvironmentStatus {
   checking: boolean;
@@ -54,7 +55,6 @@ const ImageToPdf: React.FC = () => {
     isWindows: false,
     needsSetup: false,
   });
-  const { showError } = useToastHelpers();
   const [selectedImages, setSelectedImages] = useState<FileItem[]>([]);
   const [isConverting, setIsConverting] = useState(false);
   const [progress, setProgress] = useState<{
@@ -68,6 +68,7 @@ const ImageToPdf: React.FC = () => {
   } | null>(null);
   const [dpi, setDpi] = useState<string>("150");
   const [rotation, setRotation] = useState<string>("auto");
+  const [fileNameInput, setFileNameInput] = useState<string>("default");
 
   // Check environment on component mount
   useEffect(() => {
@@ -138,12 +139,7 @@ const ImageToPdf: React.FC = () => {
     setResult(null);
 
     try {
-      if (!electronAPI) {
-        showError("Electron API недоступне");
-        return;
-      }
-      // Get output path from user
-      const outputPath = await electronAPI.savePdf("converted_images.pdf");
+      const outputPath = await electronAPI.savePdf(`${fileNameInput}.pdf`);
       if (!outputPath) {
         setIsConverting(false);
         return;
@@ -240,32 +236,48 @@ const ImageToPdf: React.FC = () => {
           {/* Convert Button */}
           {selectedImages.length > 0 && !isConverting && (
             <>
-              <div className="flex justify-between items-center gap-2">
-                <Select
-                  size="sm"
-                  label="DPI"
-                  defaultSelectedKeys={[dpi]}
-                  onSelectionChange={([newDpi]) => setDpi(newDpi.toString())}
-                  className="basis-1/4"
-                >
-                  {DPI_OPTIONS.map((option) => (
-                    <SelectItem key={option.value}>{option.label}</SelectItem>
-                  ))}
-                </Select>
+              <div className="flex flex-col gap-0">
+                <FileNameInput onChange={setFileNameInput} />
+                <Accordion variant="splitted" className="px-0 opacity-75" itemClasses={{
+                  title: "font-semibold py-0 text-sm text-right text-gray-300",
+                  base: "rounded-t-none bg-gray-700",
+                  trigger: "py-1",
+                  titleWrapper: "py-0",
+                }}>
+                  <AccordionItem
+                    key="1"
+                    aria-label="Налаштування конвертації"
+                    title="Додаткові параметри PDF"
+                  >
+                    <div className="flex justify-end gap-2">
+                      <Select
+                        size="sm"
+                        label="DPI"
+                        defaultSelectedKeys={[dpi]}
+                        onSelectionChange={([newDpi]) => setDpi(newDpi.toString())}
+                        className="basis-1/4"
+                      >
+                        {DPI_OPTIONS.map((option) => (
+                          <SelectItem key={option.value}>{option.label}</SelectItem>
+                        ))}
+                      </Select>
 
-                <Select
-                  size="sm"
-                  label="Поворот"
-                  defaultSelectedKeys={[rotation]}
-                  onSelectionChange={([newRotation]) =>
-                    setRotation(newRotation.toString())
-                  }
-                  className="basis-1/4"
-                >
-                  {ROTATION_OPTIONS.map((option) => (
-                    <SelectItem key={option.value}>{option.label}</SelectItem>
-                  ))}
-                </Select>
+                      <Select
+                        size="sm"
+                        label="Поворот"
+                        defaultSelectedKeys={[rotation]}
+                        onSelectionChange={([newRotation]) =>
+                          setRotation(newRotation.toString())
+                        }
+                        className="basis-1/4"
+                      >
+                        {ROTATION_OPTIONS.map((option) => (
+                          <SelectItem key={option.value}>{option.label}</SelectItem>
+                        ))}
+                      </Select>
+                    </div>
+                  </AccordionItem>
+                </Accordion>
               </div>
               <div className="flex justify-between items-center gap-2">
                 <Button

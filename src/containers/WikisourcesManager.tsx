@@ -5,7 +5,7 @@ import ProgressContainer from "@/components/ProgressContainer";
 import UploadResults from "@/components/UploadResults";
 import SettingsModal from "@/components/SettingsModal";
 import { useToastHelpers } from "@/providers/ToastProvider";
-import { parseFileName } from "@/helpers/parse";
+import { parseFileName } from "~/main/parse";
 import { uniqBy } from "lodash";
 import InvalidNames from "@/components/InvalidNames";
 import { useElectronApi } from "@/providers/ElectronApiProvider";

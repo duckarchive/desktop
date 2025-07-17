@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@heroui/accordion": "^2.2.20",
+    "@heroui/autocomplete": "^2.3.25",
     "@heroui/badge": "^2.2.15",
     "@heroui/button": "^2.2.23",
     "@heroui/checkbox": "^2.3.23",
