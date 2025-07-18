@@ -8,6 +8,7 @@ import ProgressContainer from "@/components/ProgressContainer";
 import FileDropZone from "@/components/FileDropZone";
 import FilesList from "@/components/FilesList";
 import { FileNameInput } from "@/components/FileNameInput";
+import { useToastHelpers } from "@/providers/ToastProvider";
 
 interface ImageToPdfEnvironmentStatus {
   checking: boolean;
@@ -48,6 +49,7 @@ const ROTATION_OPTIONS = [
 
 const ImageToPdf: React.FC = () => {
   const electronAPI = useElectronApi();
+  const { showError, showWarning } = useToastHelpers();
   const [environment, setEnvironment] = useState<ImageToPdfEnvironmentStatus>({
     checking: true,
     pythonAvailable: false,
@@ -132,7 +134,14 @@ const ImageToPdf: React.FC = () => {
   };
 
   const handleConvert = async () => {
-    if (selectedImages.length === 0) return;
+    if (selectedImages.length === 0) {
+      showError("Будь ласка, виберіть зображення для конвертації.");
+      return;
+    }
+
+    if (!fileNameInput || fileNameInput === "default") {
+      showWarning("Для подальшого завантаження файлу PDF на Вікіджерела рекомендовано створити ім'я файлу через конструктор.");
+    }
 
     setIsConverting(true);
     setProgress(null);
@@ -238,7 +247,7 @@ const ImageToPdf: React.FC = () => {
             <>
               <div className="flex flex-col gap-0">
                 <FileNameInput onChange={setFileNameInput} />
-                <Accordion variant="splitted" className="px-0 opacity-75" itemClasses={{
+                <Accordion variant="splitted" className="px-0" itemClasses={{
                   title: "font-semibold py-0 text-sm text-right text-gray-300",
                   base: "rounded-t-none bg-gray-700",
                   trigger: "py-1",
