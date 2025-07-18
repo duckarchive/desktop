@@ -329,7 +329,7 @@ export class ImageConverter {
     outputPath: string,
     options: ConversionOptions
   ): Promise<ConversionResult> {
-    const args = this.buildImg2pdfArgs(imagePaths, outputPath, options)
+    const { args, tempFile } = this.buildImg2pdfArgs(imagePaths, outputPath, options)
     
     return new Promise((resolve) => {
       const process = spawn(this.pythonPath!, ['-m', 'img2pdf', ...args], {
@@ -348,6 +348,15 @@ export class ImageConverter {
       })
 
       process.on('close', (code) => {
+        // Clean up temporary file
+        if (fs.existsSync(tempFile)) {
+          try {
+            fs.unlinkSync(tempFile)
+          } catch (cleanupError) {
+            console.warn('Failed to clean up temporary file:', tempFile)
+          }
+        }
+
         if (code === 0) {
             resolve({
             success: true,
@@ -364,6 +373,15 @@ export class ImageConverter {
       })
 
       process.on('error', (error) => {
+        // Clean up temporary file
+        if (fs.existsSync(tempFile)) {
+          try {
+            fs.unlinkSync(tempFile)
+          } catch (cleanupError) {
+            console.warn('Failed to clean up temporary file:', tempFile)
+          }
+        }
+
         resolve({
           success: false,
           message: `Не вдалося запустити конвертацію Python: ${error.message}`,
@@ -381,7 +399,7 @@ export class ImageConverter {
     outputPath: string,
     options: ConversionOptions
   ): Promise<ConversionResult> {
-    const args = this.buildImg2pdfArgs(imagePaths, outputPath, options)
+    const { args, tempFile } = this.buildImg2pdfArgs(imagePaths, outputPath, options)
     
     return new Promise((resolve) => {
       const process = spawn(this.img2pdfExePath!, args, {
@@ -400,6 +418,15 @@ export class ImageConverter {
       })
 
       process.on('close', (code) => {
+        // Clean up temporary file
+        if (fs.existsSync(tempFile)) {
+          try {
+            fs.unlinkSync(tempFile)
+          } catch (cleanupError) {
+            console.warn('Failed to clean up temporary file:', tempFile)
+          }
+        }
+
         if (code === 0) {
           resolve({
             success: true,
@@ -416,6 +443,15 @@ export class ImageConverter {
       })
 
       process.on('error', (error) => {
+        // Clean up temporary file
+        if (fs.existsSync(tempFile)) {
+          try {
+            fs.unlinkSync(tempFile)
+          } catch (cleanupError) {
+            console.warn('Failed to clean up temporary file:', tempFile)
+          }
+        }
+
         resolve({
           success: false,
           message: `Не вдалося запустити конвертацію exe: ${error.message}`,
@@ -432,7 +468,7 @@ export class ImageConverter {
     imagePaths: string[],
     outputPath: string,
     options: ConversionOptions
-  ): string[] {
+  ): { args: string[]; tempFile: string } {
     const args: string[] = []
 
     // Output file
@@ -452,10 +488,13 @@ export class ImageConverter {
       }
     }
 
-    // Add image files
-    args.push(...imagePaths)
-
-    return args
+    // Always create temporary file with image paths separated by NUL bytes
+    const tempFile = path.join(os.tmpdir(), `img2pdf_files_${new Date().toISOString()}.txt`)
+    const fileContent = imagePaths.join('\0')
+    fs.writeFileSync(tempFile, fileContent)
+    
+    args.push('--from-file', tempFile)
+    return { args, tempFile }
   }
 
   /**
