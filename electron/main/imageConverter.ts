@@ -489,7 +489,7 @@ export class ImageConverter {
     }
 
     // Always create temporary file with image paths separated by NUL bytes
-    const tempFile = path.join(os.tmpdir(), `img2pdf_files_${new Date().toISOString()}.txt`)
+    const tempFile = path.join(os.tmpdir(), `img2pdf_files_${Date.now()}.txt`)
     const fileContent = imagePaths.join('\0')
     fs.writeFileSync(tempFile, fileContent)
     
