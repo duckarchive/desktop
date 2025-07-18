@@ -9,7 +9,6 @@ import { parseFileName } from "~/main/parse";
 import { uniqBy } from "lodash";
 import InvalidNames from "@/components/InvalidNames";
 import { useElectronApi } from "@/providers/ElectronApiProvider";
-import { WikiCredentials } from "~/main/uploadService";
 import { Button } from "@heroui/button";
 
 const WikisourcesManager: React.FC = () => {

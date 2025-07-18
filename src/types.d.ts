@@ -6,7 +6,7 @@ interface RawFileItem {
 
 interface FileItem extends RawFileItem {
   id: string;
-  status: 'pending' | 'uploading' | 'success' | 'error';
+  status: "pending" | "uploading" | "success" | "error";
   parsed?: any;
   pageUrl?: string;
   error?: string;
@@ -21,7 +21,12 @@ interface UploadResult {
 }
 
 interface Message {
-  type: 'success' | 'error' | 'warning';
+  type: "success" | "error" | "warning";
   text: string;
   html?: boolean;
+}
+
+interface WikiCredentials {
+  username: string;
+  password: string;
 }

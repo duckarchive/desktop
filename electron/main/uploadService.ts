@@ -1,6 +1,6 @@
 import path from "path";
 import { Mwn } from "mwn";
-import { ParsedFileName, parseFileName } from "~/main/parse";
+import { parseFileName } from "~/main/parse";
 import {
   createCasePage,
   createDescriptionPage,
@@ -12,20 +12,13 @@ import {
   upsertFundToArchivePage,
 } from "~/main/updatePage";
 import { uploadFile } from "~/main/uploadFile";
+import { getSourcesBot } from "~/main/bot";
 
 /**
  * Progress callback interface for upload monitoring
  */
 export interface UploadProgress {
   (progress: number, message: string): void;
-}
-
-/**
- * Credentials interface
- */
-export interface WikiCredentials {
-  username: string;
-  password: string;
 }
 
 const PREFIX = "Архів:";
@@ -35,12 +28,10 @@ const PREFIX = "Архів:";
  * This reuses the existing publishFile logic with progress callbacks
  * @param filePath Path to the file to upload
  * @param onProgress Optional progress callback function
- * @param credentials Wikimedia bot credentials
  */
 export const publishFileWithProgress = async (
   filePath: string,
   onProgress?: UploadProgress,
-  credentials?: WikiCredentials
 ) => {
   const progress = onProgress || (() => {});
 
@@ -60,21 +51,8 @@ export const publishFileWithProgress = async (
 
     const { archive, fund, description, caseName } = parsed;
 
-    // Initialize bots with credentials
-    const sourcesOptions = {
-      apiUrl: "https://uk.wikisource.org/w/api.php",
-      username: credentials?.username,
-      password: credentials?.password,
-    };
-
-    const commonsOptions = {
-      apiUrl: "https://commons.wikimedia.org/w/api.php",
-      username: credentials?.username,
-      password: credentials?.password,
-    };
-
     progress(15, "Підключення...");
-    const sourcesBot = await Mwn.init(sourcesOptions);
+    const sourcesBot = await getSourcesBot();
 
     progress(20, "Створення структури сторінок...");
 
@@ -105,18 +83,13 @@ export const publishFileWithProgress = async (
     progress(55, "Початок завантаження файлу...");
 
     // Upload file with progress tracking
-    // We'll modify uploadFile to accept credentials and progress
-    await uploadFileWithCredentials(
-      filePath,
-      parsed,
-      (fileProgress, message) => {
-        // Map file upload progress to 55-100% range
-        const totalProgress = 55 + fileProgress * 0.45;
-        progress(totalProgress, message);
-      }
-    );
+    await uploadFile(filePath, parsed, (fileProgress) => {
+      // Map file upload progress to 55-100% range
+      const totalProgress = 55 + fileProgress * 0.45;
+      progress(totalProgress, `Завантаження: ${fileProgress}%`);
+    });
 
-    progress(100, "Публікацію завершено успішно!");
+    progress(100, "Файл успішно завантажено!");
 
     // Generate the case page URL
     const casePageUrl = `https://uk.wikisource.org/wiki/${encodeURIComponent(
@@ -137,24 +110,3 @@ export const publishFileWithProgress = async (
     throw error;
   }
 };
-
-/**
- * Upload file with credentials and progress tracking
- * This is a wrapper around the existing uploadFile function
- */
-async function uploadFileWithCredentials(
-  filePath: string,
-  parsed: ParsedFileName,
-  onProgress?: (progress: number, message: string) => void
-) {
-  const progress = onProgress || (() => {});
-
-  // Use the existing uploadFile function
-  await uploadFile(filePath, parsed, (fileProgress) => {
-    // Map file upload progress to 10-100% range
-    const totalProgress = fileProgress;
-    progress(totalProgress, `Завантаження: ${fileProgress}%`);
-  });
-
-  progress(100, "Файл успішно завантажено!");
-}

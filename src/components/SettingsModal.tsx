@@ -42,10 +42,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     setIsLoading(true);
 
     try {
-      const result = await electronAPI.saveCredentials(
-        trimmedUsername,
-        trimmedPassword
-      );
+      const result = await electronAPI.saveCredentials({
+        username: trimmedUsername,
+        password: trimmedPassword
+      });
 
       if (result.success) {
         showSuccess("Облікові дані успішно збережено!");

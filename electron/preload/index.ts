@@ -30,7 +30,7 @@ export interface ElectronAPI {
   removeUploadProgressListener: () => void;
 
   // Credentials operations
-  saveCredentials: (username: string, password: string) => Promise<{
+  saveCredentials: ({ username, password }: WikiCredentials) => Promise<{
     success: boolean;
     message: string;
     warning?: string;
@@ -136,7 +136,7 @@ const electronAPI: ElectronAPI = {
   /**
    * Save credentials securely
    */
-  saveCredentials: (username: string, password: string) => 
+  saveCredentials: ({ username, password }: WikiCredentials) => 
     ipcRenderer.invoke('credentials:save', { username, password }),
 
   /**

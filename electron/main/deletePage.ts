@@ -18,7 +18,7 @@ main();
 
 // delete through API call not works because of lack of rights
 // const deletePage = async () => {
-//   const bot = await Mwn.init(sourcesOptions);
+//   const bot = await getSourcesBot();
 //   await bot.delete("Архів:ДАДнО/Р-6508/10д2/11", "видалення сторінки перенаправлення");
 // };
 

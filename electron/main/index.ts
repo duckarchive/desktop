@@ -56,13 +56,6 @@ export const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 export const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 export const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
 
-// Export sourcesOptions for other modules
-export const sourcesOptions = {
-  apiUrl: "https://uk.wikisource.org/w/api.php",
-  username: credentialsManager.getCredentials()?.username,
-  password: credentialsManager.getCredentials()?.password,
-};
-
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(process.env.APP_ROOT, "public")
   : RENDERER_DIST;
@@ -243,15 +236,6 @@ ipcMain.handle(
   "upload:file",
   async (event: IpcMainInvokeEvent, filePath: string) => {
     try {
-      // Get credentials from secure storage
-      const credentials = credentialsManager.getCredentials();
-
-      if (!credentials.username || !credentials.password) {
-        throw new Error(
-          "Облікові дані відсутні! Будь ласка, налаштуйте Вікімедіа-бота."
-        );
-      }
-
       // Send progress updates to renderer
       const sendProgress = (progress: number, message: string) => {
         event.sender.send("upload:progress", { progress, message });
@@ -280,7 +264,6 @@ ipcMain.handle(
       const publishResult = await publishFileWithProgress(
         filePath,
         sendProgress,
-        credentials
       );
 
       return {
@@ -364,15 +347,18 @@ ipcMain.handle(
     { username, password }: { username: string; password: string }
   ) => {
     try {
-      const validation = credentialsManager.validateCredentials(
+      const validation = credentialsManager.validateCredentials({
         username,
         password
-      );
+      });
       if (!validation.valid) {
         return { success: false, message: validation.message };
       }
 
-      const saved = credentialsManager.saveCredentials(username, password);
+      const saved = credentialsManager.saveCredentials({
+        username,
+        password
+      });
       return {
         success: saved,
         message: saved
@@ -527,7 +513,7 @@ ipcMain.handle("imageConverter:installImg2pdf", async () => {
   } catch (error) {
     return {
       success: false,
-      message: `Installation failed: ${
+      message: `Помилка установки: ${
         error instanceof Error ? error.message : "Unknown error"
       }`,
     };
@@ -542,7 +528,7 @@ ipcMain.handle("imageConverter:setExePath", async (_, exePath: string) => {
   } catch (error) {
     return {
       success: false,
-      message: `Failed to set exe path: ${
+      message: `Не вдалося встановити шлях до exe: ${
         error instanceof Error ? error.message : "Unknown error"
       }`,
     };
@@ -563,7 +549,7 @@ ipcMain.handle(
       if (!validation.valid) {
         return {
           success: false,
-          message: `Unsupported file formats detected: ${validation.unsupportedFiles.join(
+          message: `Виявлено непідтримувані формати файлів: ${validation.unsupportedFiles.join(
             ", "
           )}`,
           error: "UNSUPPORTED_FORMAT",
@@ -573,7 +559,7 @@ ipcMain.handle(
       // Send progress update
       event.sender.send("imageConverter:progress", {
         progress: 10,
-        message: "Starting conversion...",
+        message: "Початок конвертації...",
       });
 
       const result = await imageConverter.convertImagesToPdf(
@@ -584,7 +570,7 @@ ipcMain.handle(
       if (result.success) {
         event.sender.send("imageConverter:progress", {
           progress: 100,
-          message: "Conversion completed!",
+          message: "Конвертацію завершено!",
         });
       }
 
@@ -592,7 +578,7 @@ ipcMain.handle(
     } catch (error) {
       return {
         success: false,
-        message: `Conversion failed: ${
+        message: `Конвертація не вдалася: ${
           error instanceof Error ? error.message : "Unknown error"
         }`,
         error: error instanceof Error ? error.message : "Unknown error",

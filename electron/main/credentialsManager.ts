@@ -31,7 +31,7 @@ export class CredentialsManager {
   /**
    * Get stored credentials (decrypted)
    */
-  getCredentials(): { username: string; password: string } {
+  getCredentials(): WikiCredentials {
     try {
       if (!fs.existsSync(this.credentialsPath)) {
         return { username: '', password: '' };
@@ -62,7 +62,7 @@ export class CredentialsManager {
   /**
    * Store credentials securely
    */
-  saveCredentials(username: string, password: string): boolean {
+  saveCredentials({ username, password }: WikiCredentials): boolean {
     try {
       let data: any;
 
@@ -155,7 +155,7 @@ export class CredentialsManager {
   /**
    * Validate credentials format
    */
-  validateCredentials(username: string, password: string): { valid: boolean; message: string } {
+  validateCredentials({ username, password }: WikiCredentials): { valid: boolean; message: string } {
     if (!username || !password) {
       return { valid: false, message: 'Username and password are required' };
     }
