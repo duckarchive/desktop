@@ -134,13 +134,22 @@ const EnvironmentSetupModal: React.FC<EnvironmentSetupModalProps> = ({
 
     if (!environment.needsSetup) {
       const pythonText =
-        environment.pythonAvailable && environment.pythonVersion;
+        environment.pythonAvailable &&
+        (environment.pythonVersion?.includes("Python")
+          ? environment.pythonVersion
+          : `Python ${environment.pythonVersion}`);
       const img2pdfText =
         environment.img2pdfAvailable &&
-        (environment.img2pdfExePath || environment.img2pdfVersion);
+        ((environment.img2pdfExePath || environment.img2pdfVersion)?.includes(
+          "img2pdf"
+        )
+          ? environment.img2pdfExePath || environment.img2pdfVersion
+          : `img2pdf ${
+              environment.img2pdfExePath || environment.img2pdfVersion
+            }`);
       return (
         <span className="text-green-600">
-          ✅ {pythonText} | img2pdf {img2pdfText}
+          ✅ {[pythonText, img2pdfText].filter(Boolean).join(" | ")}
         </span>
       );
     }
@@ -201,21 +210,13 @@ const EnvironmentSetupModal: React.FC<EnvironmentSetupModalProps> = ({
                       }
                     >
                       {environment.img2pdfAvailable
-                        ? `✅ ${environment.img2pdfVersion}`
+                        ? `✅ ${
+                            environment.img2pdfExePath ||
+                            environment.img2pdfVersion
+                          }`
                         : "❌ Недоступний"}
                     </span>
                   </div>
-
-                  {environment.img2pdfExePath && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">
-                        img2pdf.exe:
-                      </span>
-                      <span className="text-green-600 dark:text-green-400 text-xs">
-                        ✅ {environment.img2pdfExePath}
-                      </span>
-                    </div>
-                  )}
 
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-400">
@@ -293,8 +294,12 @@ const EnvironmentSetupModal: React.FC<EnvironmentSetupModalProps> = ({
 
             {/* Select img2pdf.exe for Windows */}
             {!environment.pythonAvailable && environment.isWindows && (
-              <Button color="success" onPress={handleSelectImg2pdfExe}>
-                Обрати img2pdf.exe
+              <Button
+                color="primary"
+                variant="bordered"
+                onPress={handleSelectImg2pdfExe}
+              >
+                Вказати шлях до img2pdf.exe
               </Button>
             )}
 
