@@ -59,9 +59,9 @@ const FileListItem: React.FC<FileListItemProps> = ({
     return (
       <div className="bg-gray-800 relative">
         <Image
-          src={`preview://${file.filePath}`}
+          src={`media://${file.filePath}`}
           alt={file.fileName}
-          className="w-full object-cover rounded-none"
+          className="w-full min-h-[200px] object-cover rounded-none"
           loading="lazy"
         />
         <CloseButton

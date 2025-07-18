@@ -74,12 +74,20 @@ if (!app.requestSingleInstanceLock()) {
 let win: BrowserWindow | null = null;
 const preload = path.join(__dirname, "../preload/index.mjs");
 const indexHtml = path.join(RENDERER_DIST, "index.html");
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'media',
+    privileges: {
+      secure: true,
+      supportFetchAPI: true,
+      bypassCSP: true,
+      stream: true,
+      standard: true,
+    }
+  }
+]);
 
 async function createWindow() {
-  protocol.handle('preview', async (request) => {
-    const filePath = request.url.replace(`preview://`, 'file://');
-    return net.fetch(filePath);
-  });
   win = new BrowserWindow({
     width: 800,
     height: 600,
@@ -134,7 +142,28 @@ async function createWindow() {
   });
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  // Helper function to handle file path issues on different operating systems
+  function convertPath(originalPath: string): string {
+    const match = originalPath.match(/^\/([a-zA-Z])\/(.*)$/)
+    if (match) {
+      // Convert the path format for Windows system to restore the drive letter
+      return `${match[1]}:/${match[2]}`
+    } else {
+      return originalPath // Other systems use the original path directly
+    }
+  }
+
+  // Custom protocol docking is file protocol
+  protocol.handle('media', async (request) => {
+    const decodedUrl = decodeURIComponent(
+      request.url.replace(new RegExp(`^media://`, 'i'), '/')
+    )
+    const fullPath = process.platform === 'win32' ? convertPath(decodedUrl) : decodedUrl
+    return net.fetch(`file://${fullPath}`)
+  })
+  createWindow();
+});
 
 app.on("window-all-closed", () => {
   win = null;
