@@ -3,6 +3,13 @@ import { truncate } from "lodash";
 import { Chip } from "@heroui/chip";
 import CloseButton from "@/components/CloseButton";
 import { Image } from "@heroui/image";
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalHeader,
+  useDisclosure,
+} from "@heroui/modal";
 
 interface FileListItemProps {
   mode?: "pdf" | "image";
@@ -17,6 +24,7 @@ const FileListItem: React.FC<FileListItemProps> = ({
   isInProgress,
   onRemoveFile,
 }) => {
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
@@ -57,18 +65,36 @@ const FileListItem: React.FC<FileListItemProps> = ({
 
   if (mode === "image") {
     return (
-      <div className="bg-gray-800 relative">
-        <Image
-          src={`media://${file.filePath}`}
-          alt={file.fileName}
-          className="w-full min-h-[200px] object-cover rounded-none"
-          loading="lazy"
-        />
+      <div className="bg-gray-800 rounded-md flex items-center justify-between gap-2 p-2">
+        <p onClick={onOpen} className="cursor-pointer">
+          <span className="text-white font-medium">
+            {file.fileName}
+          </span>
+          <span className="text-gray-400 text-sm ml-2">
+            {formatFileSize(file.fileSize)}
+          </span>
+        </p>
         <CloseButton
-          className="absolute top-2 right-2 z-10"
+          className="min-w-none min-w-none w-6 h-6"
           onPress={() => onRemoveFile(file.id)}
           disabled={isInProgress || file.status === "uploading"}
         />
+        <Modal size="full" isOpen={isOpen} onOpenChange={onOpenChange}>
+          <ModalContent>
+            <ModalHeader className="flex items-center gap-1 py-2 pl-2">
+              {file.fileName}
+              <Chip size="sm">{formatFileSize(file.fileSize)}</Chip>
+            </ModalHeader>
+            <ModalBody className="px-2 overflow-scroll">
+              <Image
+                src={`media://${file.filePath}`}
+                alt={file.fileName}
+                className="w-full object-cover rounded-none"
+                loading="lazy"
+              />
+            </ModalBody>
+          </ModalContent>
+        </Modal>
       </div>
     );
   } else {
