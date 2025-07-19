@@ -14,7 +14,7 @@ export const createFundPage = async (
     Mwn.log(`Creating fund page for ${data.fund} in archive ${data.archive}`);
     await bot.create(
       page,
-      getFundPage(data),
+      getFundPage({}),
       `Створення сторінки фонду ${data.fund}`
     );
   }
