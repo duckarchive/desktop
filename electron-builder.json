@@ -11,7 +11,9 @@
     "target": ["dmg", "zip"],
     "notarize": false,
     "gatekeeperAssess": false,
-    "identity": "-"
+    "identity": null,
+    "forceCodeSigning": false,
+    "type": "development"
   },
   "win": {
     "artifactName": "windows_${version}.${ext}",
