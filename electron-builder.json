@@ -9,11 +9,9 @@
   "mac": {
     "artifactName": "macos_${version}.${ext}",
     "target": ["dmg", "zip"],
-    "notarize": false,
+    "identity": "-",
     "gatekeeperAssess": false,
-    "identity": null,
-    "forceCodeSigning": false,
-    "type": "development"
+    "notarize": false
   },
   "win": {
     "artifactName": "windows_${version}.${ext}",
