@@ -1,6 +1,6 @@
 {
   "name": "desktop.duckarchive.com",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "main": "dist-electron/main/index.js",
   "description": "Desktop app with bunch of helper functions for genealogy research and archival records management from https://github.com/duckarchive/ team.",
   "author": {

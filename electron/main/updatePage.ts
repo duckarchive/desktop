@@ -1,21 +1,50 @@
 import { Mwn } from "mwn";
 import { ParsedFileName } from "~/main/parse";
-import { generateWikiTable } from "~/main/templates";
+import { generateWikiTable, getArchivePageTable, getDescriptionPageTable, getFundPageTable } from "~/main/templates";
 import { sortBy, uniqBy } from "lodash";
 
-const upsertItemToTable = (bot: Mwn, content: string, item: string, parsed?: ParsedFileName) => {
-  const _tableContent = content.split('{| class="wikitable')[1].split("|}")[0];
-  const cachedTableContent = `{| class="wikitable${_tableContent}|}`;
-  const tableContent = `{| class="wikitable${_tableContent.replace(/\|-\n$/, '')}|}`;
+const TABLE_START = '{| class="wikitable';
+const TABLE_END = "|}";
+
+export const extractTable = (content: string) => {
+  const _tableContent = content.split(TABLE_START)[1].split(TABLE_END)[0];
+  const cachedTableContent = `${TABLE_START}${_tableContent}${TABLE_END}`;
+  const tableContent = `${TABLE_START}${_tableContent.replace(
+    /\|-\s{0,}\n{0,}$/g,
+    ""
+  )}${TABLE_END}`;
   const _tableHeader = tableContent.split("\n!")[1].split("\n")[0];
   const tableHeader = _tableHeader.replace(/\|/g, "!");
   const tableWithFixedHeader = tableContent.replace(_tableHeader, tableHeader);
+
+  return {
+    raw: cachedTableContent,
+    extracted: tableWithFixedHeader
+  };
+};
+
+const upsertItemToTable = (
+  bot: Mwn,
+  _content: string,
+  item: string,
+  fallbackContent: string,
+  parsed?: ParsedFileName
+) => {
+  const content = _content.replace(/\{\|\s{0,}class="wikitable/, TABLE_START);
+  const { extracted, raw } = extractTable(content);
+
   let parsedTableRows: Record<string, string>[] = [];
   try {
-    parsedTableRows = bot.Wikitext.parseTable(tableWithFixedHeader);
+    parsedTableRows = bot.Wikitext.parseTable(extracted);
   } catch (error) {
-    Mwn.log(`[E] Error parsing table: ${content}`);
+    Mwn.log(`[E] Error parsing table: ${_content}`);
     throw error;
+  }
+
+  if (!parsedTableRows.length && fallbackContent) {
+    Mwn.log(`[W] No rows found in the table. Generating fallback content.`);
+    const updated = content.replace(raw, fallbackContent);
+    return upsertItemToTable(bot, updated, item, "", parsed);
   }
 
   let indexHeader = "";
@@ -40,19 +69,20 @@ const upsertItemToTable = (bot: Mwn, content: string, item: string, parsed?: Par
     (row) => Number(row[indexHeader].match(/\d+/)?.[0] || "0")
   );
   const generatedTable = generateWikiTable(updatedTableRows);
-  if (generatedTable === tableContent) {
+  const updated = content.replace(raw, generatedTable);
+  if (updated === _content) {
     Mwn.log(`[S] Table is already up to date`);
     return {
       text: content,
     };
   } else {
     Mwn.log(`[S] Updated table with new item: ${item}`);
-    // console.log(`[S] Updated: ${content.replace(tableContent, generatedTable)}`);
     return {
-      text: content.replace(cachedTableContent, generatedTable),
-      summary: parsedTableRows.length === updatedTableRows.length
-        ? "Відформатовано таблицю."
-        : "Додано новий елемент до таблиці та відформатовано.",
+      text: updated,
+      summary:
+        parsedTableRows.length === updatedTableRows.length
+          ? "Відформатовано таблицю."
+          : "Додано новий елемент до таблиці та відформатовано.",
       minor: true,
     };
   }
@@ -76,7 +106,7 @@ export const upsertFundToArchivePage = async (
   }
 
   await bot.edit(pageWithPostfix, ({ content }) =>
-    upsertItemToTable(bot, content, fund)
+    upsertItemToTable(bot, content, fund, getArchivePageTable())
   );
 };
 
@@ -86,7 +116,7 @@ export const upsertDescriptionToFundPage = async (
   { description }: ParsedFileName
 ) => {
   await bot.edit(page, ({ content }) =>
-    upsertItemToTable(bot, content, description)
+    upsertItemToTable(bot, content, description, getFundPageTable())
   );
 };
 
@@ -96,6 +126,6 @@ export const upsertCaseToDescriptionPage = async (
   parsed: ParsedFileName
 ) => {
   await bot.edit(page, ({ content }) =>
-    upsertItemToTable(bot, content, parsed.caseName, parsed)
+    upsertItemToTable(bot, content, parsed.caseName, getDescriptionPageTable(), parsed)
   );
 };
