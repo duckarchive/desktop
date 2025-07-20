@@ -73,7 +73,8 @@ export const parseFileName = (fileName: string): ParsedFileName | undefined => {
     !c ||
     !dateRange ||
     !title ||
-    title.endsWith(" ") ||
+    title.trim() !== title ||
+    title.trim().length >= 100 ||
     ARCHIVES[a] === undefined
   ) {
     console.log(`[E] Failed to parse file name: ${fileName}`);
