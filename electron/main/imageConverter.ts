@@ -3,6 +3,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { promisify } from 'util'
 import * as os from 'os'
+import { SUPPORTED_IMAGE_FORMATS } from '~/main/supportedImageFormats'
 
 const execAsync = promisify(exec)
 
@@ -501,11 +502,7 @@ export class ImageConverter {
    * Get supported image formats
    */
   getSupportedFormats(): string[] {
-    return [
-      'jpg', 'jpeg', 'png', 'tiff', 'tif', 
-      'bmp', 'gif', 'webp', 'jp2', 'j2k',
-      'jpf', 'jpx', 'jpm', 'mj2'
-    ]
+    return SUPPORTED_IMAGE_FORMATS
   }
 
   /**
