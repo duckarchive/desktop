@@ -1,5 +1,21 @@
 import { ParsedFileName } from "~/main/parse";
 
+export const getArchivePageTable = (): string => {
+  return `{| class="wikitable sortable"
+!Фонд!!Назва!!Роки!!Справ
+|-
+|[[/1/]]|| || ||
+|}`;
+};
+
+export const getFundPageTable = (): string => {
+  return `{| class="wikitable sortable"
+!Опис!!Назва!!Роки!!Справ
+|-
+|[[/1/]]|| || ||
+|}`;
+};
+
 export const getFundPage = ({
   title,
   dateRange,
@@ -14,8 +30,12 @@ export const getFundPage = ({
 }}
 
 == Описи ==
-{| class="wikitable sortable"
-!Опис!!Назва!!Роки!!Справ
+${getFundPageTable()}`;
+};
+
+export const getDescriptionPageTable = (): string => {
+  return `{| class="wikitable sortable"
+!№!!Назва!!Роки!!Сторінки
 |-
 |[[/1/]]|| || ||
 |}`;
@@ -34,11 +54,7 @@ export const getDescriptionPage = ({
   | примітки = 
 }}
 == Справи ==
-{| class="wikitable sortable"
-!№!!Назва!!Роки!!Сторінки
-|-
-|[[/1/]]|| || ||
-|}`;
+${getDescriptionPageTable()}`;
 };
 
 export const getCasePageContent = ({
