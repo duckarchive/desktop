@@ -4,7 +4,8 @@ import { generateWikiTable } from "~/main/templates";
 import { sortBy, uniqBy } from "lodash";
 
 const upsertItemToTable = (bot: Mwn, content: string, item: string, parsed?: ParsedFileName) => {
-  const _tableContent = content.split('{| class="wikitable')[1].split("|}")[0];
+  // {| class="wikitable
+  const _tableContent = content.split(/\{\|\s?class="wikitable/)[1].split("|}")[0];
   const cachedTableContent = `{| class="wikitable${_tableContent}|}`;
   const tableContent = `{| class="wikitable${_tableContent.replace(/\|-\n$/, '')}|}`;
   const _tableHeader = tableContent.split("\n!")[1].split("\n")[0];
