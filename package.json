@@ -1,6 +1,5 @@
 {
   "name": "desktop.duckarchive.com",
-  "productName": "Качиний Помічник",
   "version": "1.4.1",
   "main": "dist-electron/main/index.js",
   "description": "Desktop app with bunch of helper functions for genealogy research and archival records management from https://github.com/duckarchive/ team.",
