@@ -80,6 +80,9 @@ importers:
       mwn:
         specifier: ^3.0.1
         version: 3.0.1
+      node-poppler:
+        specifier: ^8.0.3
+        version: 8.0.3
     devDependencies:
       '@playwright/test':
         specifier: ^1.48.2
@@ -1624,6 +1627,10 @@ packages:
     resolution: {integrity: sha512-QOSvevhslijgYwRx6Rv7zKdMF8lbRmx+uQGx2+vDc+KI/eBnsy9kit5aj23AgGu3pa4t9AgwbnXWqS+iOY+2aA==}
     engines: {node: '>= 6'}
 
+  camelcase@6.3.0:
+    resolution: {integrity: sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==}
+    engines: {node: '>=10'}
+
   caniuse-lite@1.0.30001727:
     resolution: {integrity: sha512-pB68nIHmbN6L/4C6MH1DokyR3bYqFwjaSs/sWDHGj4CTcFtQUQMuJftVwWkXq7mNWOybD3KhUv3oWHoGxgP14Q==}
 
@@ -2527,6 +2534,10 @@ packages:
 
   node-api-version@0.2.1:
     resolution: {integrity: sha512-2xP/IGGMmmSQpI1+O/k72jF/ykvZ89JeuKX3TLJAYPDVLUalrshrLHkeVcCCZqG/eEa635cr8IBYzgnDvM2O8Q==}
+
+  node-poppler@8.0.3:
+    resolution: {integrity: sha512-akQhsqSK6h3NbnEBt0WiCvF7sJe29cjbKNKtyDT1g9e8uLhxbWEiSbKlE6aRH2rg2u470gRMID1WMzmoey0fxw==}
+    engines: {node: '>=20'}
 
   node-releases@2.0.19:
     resolution: {integrity: sha512-xxOWJsBKtzAq7DY0J+DTzuz58K8e7sJbdgwkbMWQe8UYB6ekmsQ45q0M/tJDsGaZmbC+l7n57UV8Hl5tHxO9uw==}
@@ -5396,6 +5407,8 @@ snapshots:
 
   camelcase-css@2.0.1: {}
 
+  camelcase@6.3.0: {}
+
   caniuse-lite@1.0.30001727: {}
 
   chai@5.2.1:
@@ -6373,6 +6386,11 @@ snapshots:
 
   node-api-version@0.2.1:
     dependencies:
+      semver: 7.7.2
+
+  node-poppler@8.0.3:
+    dependencies:
+      camelcase: 6.3.0
       semver: 7.7.2
 
   node-releases@2.0.19: {}

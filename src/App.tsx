@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Navbar, { NavigationPage } from "@/components/Navbar";
 import WikisourcesManager from "@/containers/WikisourcesManager";
 import ImageToPdf from "@/containers/ImageToPdf";
+import PdfToImages from "@/containers/PdfToImages";
 
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState<NavigationPage>('wikisources');
@@ -12,6 +13,8 @@ const App: React.FC = () => {
         return <WikisourcesManager />;
       case 'imageToPdf':
         return <ImageToPdf />;
+      case 'pdfToImages':
+        return <PdfToImages />;
       default:
         return <WikisourcesManager />;
     }

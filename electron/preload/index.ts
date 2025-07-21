@@ -112,6 +112,44 @@ export interface ElectronAPI {
   }>>;
   savePdf: (defaultName?: string) => Promise<string | null>;
   selectImg2pdfExe: () => Promise<string | null>;
+
+  // PDF to Images converter
+  pdfConverter: {
+    /**
+     * Convert PDF to images
+     */
+    convertToImages: (pdfPath: string, options?: {
+      format?: 'png' | 'jpeg';
+      quality?: number;
+      density?: number;
+      outputDir?: string;
+    }) => Promise<{
+      success: boolean;
+      outputPaths?: string[];
+      message: string;
+      error?: string;
+    }>;
+
+    /**
+     * Get PDF page count
+     */
+    getPageCount: (pdfPath: string) => Promise<{
+      success: boolean;
+      pageCount?: number;
+      message: string;
+      error?: string;
+    }>;
+
+    /**
+     * Listen for conversion progress updates
+     */
+    onProgress: (callback: (data: { progress: number; message: string }) => void) => void;
+
+    /**
+     * Remove conversion progress listener
+     */
+    removeProgressListener: () => void;
+  },
 }
 
 // Expose protected methods that allow the renderer process to use
@@ -249,6 +287,43 @@ const electronAPI: ElectronAPI = {
      */
     removeProgressListener: () => {
       ipcRenderer.removeAllListeners('imageConverter:progress');
+    },
+  },
+
+  /**
+   * PDF to Images converter
+   */
+  pdfConverter: {
+    /**
+     * Convert PDF to images
+     */
+    convertToImages: (pdfPath: string, options?: {
+      format?: 'png' | 'jpeg';
+      quality?: number;
+      density?: number;
+      outputDir?: string;
+    }) => ipcRenderer.invoke('pdf:convert', pdfPath, options),
+
+    /**
+     * Get PDF page count
+     */
+    getPageCount: (pdfPath: string) => ipcRenderer.invoke('pdf:getPageCount', pdfPath),
+
+    /**
+     * Listen for conversion progress updates
+     */
+    onProgress: (callback: (data: { progress: number; message: string }) => void) => {
+      const wrappedCallback = (_event: IpcRendererEvent, data: { progress: number; message: string }) => {
+        callback(data);
+      };
+      ipcRenderer.on('pdf:progress', wrappedCallback);
+    },
+
+    /**
+     * Remove conversion progress listener
+     */
+    removeProgressListener: () => {
+      ipcRenderer.removeAllListeners('pdf:progress');
     },
   },
 };

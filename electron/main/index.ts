@@ -18,12 +18,16 @@ import { parseFileName } from "./parse";
 import { CredentialsManager } from "./credentialsManager";
 import { ConversionOptions, imageConverter } from "./imageConverter";
 import { SUPPORTED_IMAGE_FORMATS } from "~/main/supportedImageFormats";
+import { PdfConverter, PdfConversionOptions } from './pdfConverter';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Initialize credentials manager
 const credentialsManager = new CredentialsManager();
+
+// Initialize PDF converter
+const pdfConverter = new PdfConverter();
 
 // Enable live reload for development
 if (process.env.NODE_ENV === "development") {
@@ -624,4 +628,32 @@ ipcMain.handle("imageConverter:getSupportedFormats", () => {
 // Validate image files
 ipcMain.handle("imageConverter:validateFiles", (_, filePaths: string[]) => {
   return imageConverter.validateImageFiles(filePaths);
+});
+
+// PDF conversion handlers
+ipcMain.handle('pdf:convert', async (
+  event: IpcMainInvokeEvent,
+  pdfPath: string,
+  options: PdfConversionOptions = {}
+): Promise<string[]> => {
+  try {
+    return await pdfConverter.convertPdfToImages(pdfPath, options, (progress, message) => {
+      event.sender.send('pdf:progress', { progress, message });
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Невідома помилка конвертації';
+    throw new Error(errorMessage);
+  }
+});
+
+ipcMain.handle('pdf:getPageCount', async (
+  _event: IpcMainInvokeEvent,
+  pdfPath: string
+): Promise<number> => {
+  try {
+    return await pdfConverter.getPdfPageCount(pdfPath);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Невідома помилка';
+    throw new Error(errorMessage);
+  }
 });

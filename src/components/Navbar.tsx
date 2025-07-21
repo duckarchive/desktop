@@ -2,7 +2,7 @@ import Footer from "@/components/Footer";
 import clsx from "clsx";
 import React from "react";
 
-export type NavigationPage = "wikisources" | "imageToPdf";
+export type NavigationPage = "wikisources" | "imageToPdf" | "pdfToImages";
 
 interface NavbarProps {
   activePage: NavigationPage;
@@ -19,10 +19,16 @@ const Navbar: React.FC<NavbarProps> = ({ activePage, onPageChange }) => {
     },
     {
       id: "imageToPdf" as NavigationPage,
-      label: "Зображення в PDF",
+      label: "Зображення > PDF",
       icon: "🖼️",
       description: "Конвертуйте зображення у PDF документи",
     },
+    {
+      id: "pdfToImages" as NavigationPage,
+      label: "PDF > Зображення",
+      icon: "🖼️",
+      description: "Конвертуйте PDF документи у зображення",
+    }
   ];
 
   return (

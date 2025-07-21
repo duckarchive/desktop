@@ -52,7 +52,8 @@
     "clsx": "^2.1.1",
     "electron-reload": "2.0.0-alpha.1",
     "framer-motion": "12.23.6",
-    "mwn": "^3.0.1"
+    "mwn": "^3.0.1",
+    "node-poppler": "^8.0.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.2",
