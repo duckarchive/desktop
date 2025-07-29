@@ -110,10 +110,10 @@ export const generateWikiTable = (
     return "";
   }
   const columns = Object.keys(rows[0]);
-  const header = `! ${columns.join(" !! ")}`;
+  const header = `! ${columns.join("!!")}`;
   const body = rows
     .map((row) => {
-      return `|-\n| ${columns.map((col) => row[col] || "").join(" || ")}`;
+      return `|-\n| ${columns.map((col) => row[col] || "").join("||")}`;
     })
     .join("\n");
   return `{| class="wikitable sortable"\n${header}\n${body}\n|}`;
