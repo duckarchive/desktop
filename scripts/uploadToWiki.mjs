@@ -12,7 +12,7 @@ const credentials = {
 };
 
 const source = 'Журнал "Волынскія Єпархіальныя Вѣдомости"';
-const author = 'Редакція "Волынскіхъ Єпархіальнихъ Вѣдомостей" г. Кременецъ';
+const author = 'Редакція "Волынськихъ Єпархіальнихъ Вѣдомостей" г. Кременецъ';
 const categories = [
   'Category:Volynskie eparkhialnyye vedomosti'
 ];
@@ -207,9 +207,81 @@ ${categories.map(category => `[[${category}]]`).join('\n')}
 
     console.log('Description and license added successfully');
     console.log(`File page: ${finalRes.data?.upload?.imageinfo?.descriptionurl}`);
+
+    // Add structured data
+    await addStructuredData(bot, csrfToken, formattedFileName);
   } catch (error) {
     console.error('Error during upload:', error);
     process.exit(1);
+  }
+}
+
+// Add this function at the end of your file
+async function addStructuredData(bot, token, fileName) {
+  try {
+    console.log('Adding structured data to the file...');
+    
+    // Get the entity ID for the file (M-ID)
+    const entityResponse = await bot.request({
+      action: 'query',
+      prop: 'info',
+      titles: `File:${fileName}`,
+      format: 'json'
+    });
+    
+    const { pageid: pageId } = entityResponse.query.pages[0];
+    
+    if (pageId === '-1') {
+      throw new Error('File not found');
+    }
+    
+    // Get MediaInfo entity ID (M+pageId)
+    const entityId = 'M' + pageId;
+    
+    // Define structured data
+    // P180 = depicts (on Commons)
+    const structuredData = {
+      claims: {
+        P180: [
+          // Volynskie eparkhialnyye vedomosti (Q12090555)
+          { 
+            mainsnak: {
+              snaktype: 'value',
+              property: 'P180',
+              datavalue: {
+                value: { 
+                  id: 'Q12090555', 
+                  "entity-type": 'item'
+                },
+                type: 'wikibase-entityid'
+              },
+              datatype: 'wikibase-item'
+            },
+            type: 'statement',
+            rank: 'normal'
+          }
+        ]
+      }
+    };
+    
+    // Make the API call to add structured data
+    const result = await bot.request({
+      action: 'wbeditentity',
+      id: entityId,
+      data: JSON.stringify(structuredData),
+      token: token,
+      format: 'json'
+    });
+    
+    if (result.success) {
+      console.log('Structured data added successfully!');
+    } else {
+      throw new Error('Failed to add structured data: ' + JSON.stringify(result));
+    }
+    
+  } catch (error) {
+    console.error('Error adding structured data:', error);
+    // Don't exit process, just log the error
   }
 }
 
