@@ -208,7 +208,7 @@ const WikisourcesManager: React.FC = () => {
   return (
     <div className="flex flex-col gap-4">
       <header className="">
-        <h2 className="text-xl font-semibold">Менеджер Вікіджерел</h2>
+        <h2 className="text-xl font-semibold">PDF на Вікіджерела</h2>
         <SettingsModal username={username} onSave={setUsername} />
       </header>
 

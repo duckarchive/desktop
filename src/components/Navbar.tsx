@@ -13,7 +13,7 @@ const Navbar: React.FC<NavbarProps> = ({ activePage, onPageChange }) => {
   const navigationItems = [
     {
       id: "wikisources" as NavigationPage,
-      label: "Менеджер Вікіджерел",
+      label: "PDF на Вікіджерела",
       icon: "📚",
       description: "Завантажуйте та керуйте файлами для Вікіджерел",
     },
